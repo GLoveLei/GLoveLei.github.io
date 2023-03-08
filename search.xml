@@ -4,19 +4,6 @@
   
     
     <entry>
-      <title>test</title>
-      <link href="2023/03/08/Stest/"/>
-      <url>2023/03/08/Stest/</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>工单项目</title>
       <link href="2021/03/28/S%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE/"/>
       <url>2021/03/28/S%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE/</url>
@@ -292,31 +279,6 @@
     
     
     <entry>
-      <title>微博三方登录</title>
-      <link href="2021/01/28/Sday4/"/>
-      <url>2021/01/28/Sday4/</url>
-      
-        <content type="html"><![CDATA[<p><img src="/images/river.png" alt="cover"></p><h2 id="总体流程"><a href="#总体流程" class="headerlink" title="总体流程"></a>总体流程</h2><p>首先需要注册”新浪微博开放平台”：<a href="https://open.weibo.com/">https://open.weibo.com</a></p><p>添加网站应用前需要先提交认证审核，然后添加完网站应用再提交应用审核。</p><p>创建完应用后会有一个 App Key 和 App Secret。</p><h5 id="1-获取-code"><a href="#1-获取-code" class="headerlink" title="1.获取 code"></a>1.获取 code</h5><p>第三方客户端引导用户发送get请求</p><pre><code>https://api.weibo.com/oauth2/authorize</code></pre><p>参数：</p><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">client_id</td><td align="center">是</td><td align="left">申请应用时分配的AppKey。</td></tr><tr><td align="center">redirect_uri</td><td align="center">是</td><td align="left">授权回调地址。</td></tr><tr><td align="center">scope</td><td align="center">否</td><td align="left">申请scope权限所需参数，可一次申请多个scope权限，用逗号分隔</td></tr><tr><td align="center">state</td><td align="center">否</td><td align="left">用于保持请求和回调的状态，在回调时，会在Query Parameter中回传该参数</td></tr><tr><td align="center">display</td><td align="center">否</td><td align="left">授权页面的终端类型，取值见下面的说明。</td></tr><tr><td align="center">forcelogin</td><td align="center">否</td><td align="left">是否强制用户重新登录，true：是，false：否。默认false。</td></tr><tr><td align="center">language</td><td align="center">否</td><td align="left">授权页语言，缺省为中文简体版，en为英文版。</td></tr></tbody></table><p>这时会跳转到登入授权页面，授权后新浪微博会向客户端返回到我们的创建应用的时候填写的那个回调地址。并且带着code参数</p><h5 id="2-通过-code-获取-access-token"><a href="#2-通过-code-获取-access-token" class="headerlink" title="2.通过 code 获取 access_token"></a>2.通过 code 获取 access_token</h5><p>有了code，我们在通过 <code>App Key</code> 、<code>App Secret</code> 和<code>code</code>等参数去发送 post 请求，获取 <code>access_token</code></p><pre><code>https://graph.qq.com/oauth2.0/token</code></pre><h6 id="注意，虽然是post请求，但是参数是通过get传递的-参数："><a href="#注意，虽然是post请求，但是参数是通过get传递的-参数：" class="headerlink" title="注意，虽然是post请求，但是参数是通过get传递的 参数："></a>注意，虽然是post请求，但是参数是通过get传递的 参数：</h6><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">client_id</td><td align="center">是</td><td align="left">申请应用时分配的AppKey。</td></tr><tr><td align="center">client_secret</td><td align="center">是</td><td align="left">申请应用时分配的AppSecret。</td></tr><tr><td align="center">grant_type</td><td align="center">是</td><td align="left">请求的类型，填写authorization_code</td></tr><tr><td align="center">code</td><td align="center">是</td><td align="left">调用authorize获得的code值。</td></tr><tr><td align="center">redirect_uri</td><td align="center">是</td><td align="left">回调地址，需需与注册应用里的回调地址一致。</td></tr></tbody></table><h6 id="返回数据包括-access-token-、uid等信息："><a href="#返回数据包括-access-token-、uid等信息：" class="headerlink" title="返回数据包括 access_token 、uid等信息："></a>返回数据包括 access_token 、uid等信息：</h6><pre><code class="js"> &#123;       &quot;access_token&quot;: &quot;&quot;,       &quot;expires_in&quot;: &#39;&#39;,       &quot;remind_in&quot;:&quot;&quot;,       &quot;uid&quot;:&quot;&quot; &#125;</code></pre><h5 id="3-用-access-token-获取用户信息"><a href="#3-用-access-token-获取用户信息" class="headerlink" title="3.用 access_token 获取用户信息"></a>3.用 access_token 获取用户信息</h5><p>get请求地址：</p><pre><code>https://api.weibo.com/2/users/show.json</code></pre><p>参数：</p><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">access_token</td><td align="center">是</td><td align="left">采用OAuth授权方式为必填参数，OAuth授权后获得。</td></tr><tr><td align="center">uid</td><td align="center">否</td><td align="left">需要查询的用户ID。</td></tr><tr><td align="center">screen_name</td><td align="center">否</td><td align="left">需要查询的用户昵称。</td></tr></tbody></table><p>注意：参数uid与screen_name二者必选其一，且只能选其一。</p><p>我们可以用返回的 access_token 与 uid 访问获取用户信息</p><h2 id="代码部分"><a href="#代码部分" class="headerlink" title="代码部分"></a>代码部分</h2><h4 id="后端部分"><a href="#后端部分" class="headerlink" title="后端部分"></a>后端部分</h4><p>首先在settings中配置</p><pre><code class="js"># 微博第三方登录配置App_Key = &#39;&#39;  # App KeyApp_Secret = &#39;&#39;  # App SecretMicroBlog_URL = &#39;&#39;  # 回调页地址</code></pre><p>在views.py中进行登录配置操作</p><pre><code class="js">import requestsfrom BlogDjango.settings import App_Key, App_Secret, MicroBlog_URLfrom rest_framework.views import APIViewfrom rest_framework.response import Responsefrom django.shortcuts import redirectclass MicroBlogView(APIView):    # 使用微博开放平台可以使用get和post    def get(self, request):        micro_url = &#39;https://api.weibo.com/oauth2/authorize?client_id=&#123;&#125;&amp;redirect_uri=&#123;&#125;&#39;.format(App_Key, MicroBlog_URL)        return Response(&#123;&#39;url&#39;: micro_url&#125;)    # 使用新浪开放平台OAuth2/access_token接口, 只能使用post方法    def post(self, request):        # 获取code, 去访问token        code = request.data.get(&#39;code&#39;, None)        # 使用requests网络请求请求        r = requests.post(&#39;https://api.weibo.com/oauth2/access_token&#39;, &#123;            &#39;client_id&#39;: App_Key,            &#39;client_secret&#39;: App_Secret,            &#39;grant_type&#39;: &#39;authorization_code&#39;,            &#39;code&#39;: code,            &#39;redirect_uri&#39;: MicroBlog_URL        &#125;)        # 获取返回的对象        print(r.json())        access_token = r.json()[&#39;access_token&#39;]        uid = r.json()[&#39;uid&#39;]        if access_token:            return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 200, &#39;uid&#39;: uid&#125;)        return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 200&#125;)# 使用微博登录时用到的回调地址def micro_callback(request):    code = request.GET.get(&#39;code&#39;, None)    return redirect(&#39;http://127.0.0.1:8080/#/oauthCallback?code=&#39; + code)</code></pre><h4 id="前段部分"><a href="#前段部分" class="headerlink" title="前段部分"></a>前段部分</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;        &lt;!-- 通过这个weiBoUrl地址可以进入微博的回调页，获取到code并传到后端 --&gt;      &lt;a :href=&quot;weiBoUrl&quot;&gt;微博&lt;/a&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;    data() &#123;        return &#123;            weiBoUrl: &#39;&#39;,        &#125;    &#125;,    mounted() &#123;        // 获取微博授权页地址      this.$axios.get(&#39;micro&#39;).then(res=&gt;&#123;        this.weiBoUrl = res.data.url;        console.log(res.data)      &#125;).catch(err=&gt;&#123;        console.log(err)      &#125;)&#125;&#125;&lt;/script&gt;&lt;style&gt;&lt;/style&gt;</code></pre>]]></content>
-      
-      
-      <categories>
-          
-          <category> python </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> 微博三方登录 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>axios拦截器</title>
       <link href="2021/01/28/Sday07/"/>
       <url>2021/01/28/Sday07/</url>
@@ -334,6 +296,31 @@
         <tags>
             
             <tag> axios拦截器 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>微博三方登录</title>
+      <link href="2021/01/28/Sday4/"/>
+      <url>2021/01/28/Sday4/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/images/river.png" alt="cover"></p><h2 id="总体流程"><a href="#总体流程" class="headerlink" title="总体流程"></a>总体流程</h2><p>首先需要注册”新浪微博开放平台”：<a href="https://open.weibo.com/">https://open.weibo.com</a></p><p>添加网站应用前需要先提交认证审核，然后添加完网站应用再提交应用审核。</p><p>创建完应用后会有一个 App Key 和 App Secret。</p><h5 id="1-获取-code"><a href="#1-获取-code" class="headerlink" title="1.获取 code"></a>1.获取 code</h5><p>第三方客户端引导用户发送get请求</p><pre><code>https://api.weibo.com/oauth2/authorize</code></pre><p>参数：</p><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">client_id</td><td align="center">是</td><td align="left">申请应用时分配的AppKey。</td></tr><tr><td align="center">redirect_uri</td><td align="center">是</td><td align="left">授权回调地址。</td></tr><tr><td align="center">scope</td><td align="center">否</td><td align="left">申请scope权限所需参数，可一次申请多个scope权限，用逗号分隔</td></tr><tr><td align="center">state</td><td align="center">否</td><td align="left">用于保持请求和回调的状态，在回调时，会在Query Parameter中回传该参数</td></tr><tr><td align="center">display</td><td align="center">否</td><td align="left">授权页面的终端类型，取值见下面的说明。</td></tr><tr><td align="center">forcelogin</td><td align="center">否</td><td align="left">是否强制用户重新登录，true：是，false：否。默认false。</td></tr><tr><td align="center">language</td><td align="center">否</td><td align="left">授权页语言，缺省为中文简体版，en为英文版。</td></tr></tbody></table><p>这时会跳转到登入授权页面，授权后新浪微博会向客户端返回到我们的创建应用的时候填写的那个回调地址。并且带着code参数</p><h5 id="2-通过-code-获取-access-token"><a href="#2-通过-code-获取-access-token" class="headerlink" title="2.通过 code 获取 access_token"></a>2.通过 code 获取 access_token</h5><p>有了code，我们在通过 <code>App Key</code> 、<code>App Secret</code> 和<code>code</code>等参数去发送 post 请求，获取 <code>access_token</code></p><pre><code>https://graph.qq.com/oauth2.0/token</code></pre><h6 id="注意，虽然是post请求，但是参数是通过get传递的-参数："><a href="#注意，虽然是post请求，但是参数是通过get传递的-参数：" class="headerlink" title="注意，虽然是post请求，但是参数是通过get传递的 参数："></a>注意，虽然是post请求，但是参数是通过get传递的 参数：</h6><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">client_id</td><td align="center">是</td><td align="left">申请应用时分配的AppKey。</td></tr><tr><td align="center">client_secret</td><td align="center">是</td><td align="left">申请应用时分配的AppSecret。</td></tr><tr><td align="center">grant_type</td><td align="center">是</td><td align="left">请求的类型，填写authorization_code</td></tr><tr><td align="center">code</td><td align="center">是</td><td align="left">调用authorize获得的code值。</td></tr><tr><td align="center">redirect_uri</td><td align="center">是</td><td align="left">回调地址，需需与注册应用里的回调地址一致。</td></tr></tbody></table><h6 id="返回数据包括-access-token-、uid等信息："><a href="#返回数据包括-access-token-、uid等信息：" class="headerlink" title="返回数据包括 access_token 、uid等信息："></a>返回数据包括 access_token 、uid等信息：</h6><pre><code class="js"> &#123;       &quot;access_token&quot;: &quot;&quot;,       &quot;expires_in&quot;: &#39;&#39;,       &quot;remind_in&quot;:&quot;&quot;,       &quot;uid&quot;:&quot;&quot; &#125;</code></pre><h5 id="3-用-access-token-获取用户信息"><a href="#3-用-access-token-获取用户信息" class="headerlink" title="3.用 access_token 获取用户信息"></a>3.用 access_token 获取用户信息</h5><p>get请求地址：</p><pre><code>https://api.weibo.com/2/users/show.json</code></pre><p>参数：</p><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">access_token</td><td align="center">是</td><td align="left">采用OAuth授权方式为必填参数，OAuth授权后获得。</td></tr><tr><td align="center">uid</td><td align="center">否</td><td align="left">需要查询的用户ID。</td></tr><tr><td align="center">screen_name</td><td align="center">否</td><td align="left">需要查询的用户昵称。</td></tr></tbody></table><p>注意：参数uid与screen_name二者必选其一，且只能选其一。</p><p>我们可以用返回的 access_token 与 uid 访问获取用户信息</p><h2 id="代码部分"><a href="#代码部分" class="headerlink" title="代码部分"></a>代码部分</h2><h4 id="后端部分"><a href="#后端部分" class="headerlink" title="后端部分"></a>后端部分</h4><p>首先在settings中配置</p><pre><code class="js"># 微博第三方登录配置App_Key = &#39;&#39;  # App KeyApp_Secret = &#39;&#39;  # App SecretMicroBlog_URL = &#39;&#39;  # 回调页地址</code></pre><p>在views.py中进行登录配置操作</p><pre><code class="js">import requestsfrom BlogDjango.settings import App_Key, App_Secret, MicroBlog_URLfrom rest_framework.views import APIViewfrom rest_framework.response import Responsefrom django.shortcuts import redirectclass MicroBlogView(APIView):    # 使用微博开放平台可以使用get和post    def get(self, request):        micro_url = &#39;https://api.weibo.com/oauth2/authorize?client_id=&#123;&#125;&amp;redirect_uri=&#123;&#125;&#39;.format(App_Key, MicroBlog_URL)        return Response(&#123;&#39;url&#39;: micro_url&#125;)    # 使用新浪开放平台OAuth2/access_token接口, 只能使用post方法    def post(self, request):        # 获取code, 去访问token        code = request.data.get(&#39;code&#39;, None)        # 使用requests网络请求请求        r = requests.post(&#39;https://api.weibo.com/oauth2/access_token&#39;, &#123;            &#39;client_id&#39;: App_Key,            &#39;client_secret&#39;: App_Secret,            &#39;grant_type&#39;: &#39;authorization_code&#39;,            &#39;code&#39;: code,            &#39;redirect_uri&#39;: MicroBlog_URL        &#125;)        # 获取返回的对象        print(r.json())        access_token = r.json()[&#39;access_token&#39;]        uid = r.json()[&#39;uid&#39;]        if access_token:            return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 200, &#39;uid&#39;: uid&#125;)        return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 200&#125;)# 使用微博登录时用到的回调地址def micro_callback(request):    code = request.GET.get(&#39;code&#39;, None)    return redirect(&#39;http://127.0.0.1:8080/#/oauthCallback?code=&#39; + code)</code></pre><h4 id="前段部分"><a href="#前段部分" class="headerlink" title="前段部分"></a>前段部分</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;        &lt;!-- 通过这个weiBoUrl地址可以进入微博的回调页，获取到code并传到后端 --&gt;      &lt;a :href=&quot;weiBoUrl&quot;&gt;微博&lt;/a&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;    data() &#123;        return &#123;            weiBoUrl: &#39;&#39;,        &#125;    &#125;,    mounted() &#123;        // 获取微博授权页地址      this.$axios.get(&#39;micro&#39;).then(res=&gt;&#123;        this.weiBoUrl = res.data.url;        console.log(res.data)      &#125;).catch(err=&gt;&#123;        console.log(err)      &#125;)&#125;&#125;&lt;/script&gt;&lt;style&gt;&lt;/style&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 微博三方登录 </tag>
             
         </tags>
       
