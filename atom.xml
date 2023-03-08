@@ -207,31 +207,6 @@
   </entry>
   
   <entry>
-    <title>redis键空间事件</title>
-    <link href="http://example.com/2021/02/01/Sday09/"/>
-    <id>http://example.com/2021/02/01/Sday09/</id>
-    <published>2021-02-01T06:59:21.000Z</published>
-    <updated>2023-03-06T08:45:39.299Z</updated>
-    
-    <content type="html"><![CDATA[<p><img src="/glblogs/images/river.png" alt="cover"></p><h2 id="Redis键空间介绍"><a href="#Redis键空间介绍" class="headerlink" title="Redis键空间介绍"></a>Redis键空间介绍</h2><p>使用场景:</p><p>在购物项目中，如果完成提交订单而没有支付成功的状态时，redis会在规定的时间内删除订单，redis保存订单后，设置过期时间，时间过后数据删除</p><p>促销活动结束之后，促销活动开始之前设置redis,到期删除，通过回调函数拿到key, 执行回调库存脚本</p><h4 id="一、开启键空间通知"><a href="#一、开启键空间通知" class="headerlink" title="一、开启键空间通知"></a>一、开启键空间通知</h4><p>在cmd窗口，默认键空间通知是关闭的,需要在终端开启</p><pre><code>redis-cli config set notify-keyspace-events KEAok</code></pre><p>key值可能让事件被启用</p><table><thead><tr><th align="center">字符</th><th align="left">发送的通知</th></tr></thead><tbody><tr><td align="center">K</td><td align="left">键空间通知，所有通知以__keyspace@<db>__为前缀</td></tr><tr><td align="center">E</td><td align="left">键空间通知，所有通知以__keyevent@<db>__为前缀</td></tr><tr><td align="center">g</td><td align="left">DEL、EXPIRE、RENAME等类型无关的通用命令通知</td></tr><tr><td align="center">$</td><td align="left">字符串命令通知</td></tr><tr><td align="center">l</td><td align="left">列表命令通知</td></tr><tr><td align="center">s</td><td align="left">结合命令通知</td></tr><tr><td align="center">h</td><td align="left">哈希命令通知</td></tr><tr><td align="center">z</td><td align="left">有序集合命令通知</td></tr><tr><td align="center">x</td><td align="left">过期事件:每当有过期键被删除时发送</td></tr><tr><td align="center">e</td><td align="left">驱逐(evict)事件:每当有键因为maxmemory政策而被删除时发送</td></tr><tr><td align="center">A</td><td align="left">参数g$lshzxe的别名</td></tr></tbody></table><h4 id="二、检查事件是否正常"><a href="#二、检查事件是否正常" class="headerlink" title="二、检查事件是否正常"></a>二、检查事件是否正常</h4><pre><code>1 redis-cli --csv psubscribe &#39;*&#39;  2 # 结果   3 Reading messages... (press Ctrl-C to quit)  4 &quot;psubscribe&quot;,&quot;*&quot;,1</code></pre><h4 id="三、配置回调函数"><a href="#三、配置回调函数" class="headerlink" title="三、配置回调函数"></a>三、配置回调函数</h4><p>在python的视图类中进行配置</p><pre><code class="js"># 连接redis数据库redis = Redis(host=&#39;127.0.0.1&#39;, port=6379, decode_responses=True)# 监听新消息pubsub = redis.pubsub()# 定义触发事件def orderbuy(msg):    order_id = str(msg[&#39;data&#39;])    # 获取订单对象    order = Order.objects.get(order_id=order_id)    # 判断用户是否已经付款    if str(order.status) == &quot;1&quot;:        # 取消订单,更改订单状态        Order.objects.filter(order_id=order_id).update(status=&quot;2&quot;)        # 获取订单中的所有商品        goods = order.objects.all()        # 遍历商品        for good in goods:            # 获取订单中的商品数量            count = good.count            print(count)            # 获取name商品            name = good.name            # 将库存重新增加到sku的stock中去            name.stock += count            # 从销量中减去已经取消的数量            name.sales -= count            name.save()#订阅redis键空间通知pubsub.psubscribe(**&#123;&#39;__keyevent@0__:expired&#39;: event_handler&#125;)# 死循环,接收订阅的通知while True:    message = pubsub.get_message()    if message:        print(message)    else:        time.sleep(0.1)</code></pre><pre><code>keyevent@0:expired’:设定通知类型: keyspace、keyevent设置事件类型: expired选中数据库号: @0()</code></pre><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>在购物车项目中进行添加，先在终端开启redis的键空间，然后开启键空间，在新的终端打开redis进行创建数据，就会有数据发送给键空间，然后保存，最后在python的视图函数中进行配置redis监听数据，判断是否支持，再发送数据给键空间，进行无线循环获取订阅获取的通知。</p>]]></content>
-    
-    
-      
-      
-    <summary type="html">&lt;p&gt;&lt;img src=&quot;/glblogs/images/river.png&quot; alt=&quot;cover&quot;&gt;&lt;/p&gt;
-&lt;h2 id=&quot;Redis键空间介绍&quot;&gt;&lt;a href=&quot;#Redis键空间介绍&quot; class=&quot;headerlink&quot; title=&quot;Redis键空间介绍&quot;&gt;&lt;/a</summary>
-      
-    
-    
-    
-    <category term="redis" scheme="http://example.com/categories/redis/"/>
-    
-    
-    <category term="redis键空间事件" scheme="http://example.com/tags/redis%E9%94%AE%E7%A9%BA%E9%97%B4%E4%BA%8B%E4%BB%B6/"/>
-    
-  </entry>
-  
-  <entry>
     <title>Redis订阅与发布</title>
     <link href="http://example.com/2021/02/01/Sday08/"/>
     <id>http://example.com/2021/02/01/Sday08/</id>
@@ -253,6 +228,31 @@
     
     
     <category term="Redis订阅与发布" scheme="http://example.com/tags/Redis%E8%AE%A2%E9%98%85%E4%B8%8E%E5%8F%91%E5%B8%83/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>redis键空间事件</title>
+    <link href="http://example.com/2021/02/01/Sday09/"/>
+    <id>http://example.com/2021/02/01/Sday09/</id>
+    <published>2021-02-01T06:59:21.000Z</published>
+    <updated>2023-03-06T08:45:39.299Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/glblogs/images/river.png" alt="cover"></p><h2 id="Redis键空间介绍"><a href="#Redis键空间介绍" class="headerlink" title="Redis键空间介绍"></a>Redis键空间介绍</h2><p>使用场景:</p><p>在购物项目中，如果完成提交订单而没有支付成功的状态时，redis会在规定的时间内删除订单，redis保存订单后，设置过期时间，时间过后数据删除</p><p>促销活动结束之后，促销活动开始之前设置redis,到期删除，通过回调函数拿到key, 执行回调库存脚本</p><h4 id="一、开启键空间通知"><a href="#一、开启键空间通知" class="headerlink" title="一、开启键空间通知"></a>一、开启键空间通知</h4><p>在cmd窗口，默认键空间通知是关闭的,需要在终端开启</p><pre><code>redis-cli config set notify-keyspace-events KEAok</code></pre><p>key值可能让事件被启用</p><table><thead><tr><th align="center">字符</th><th align="left">发送的通知</th></tr></thead><tbody><tr><td align="center">K</td><td align="left">键空间通知，所有通知以__keyspace@<db>__为前缀</td></tr><tr><td align="center">E</td><td align="left">键空间通知，所有通知以__keyevent@<db>__为前缀</td></tr><tr><td align="center">g</td><td align="left">DEL、EXPIRE、RENAME等类型无关的通用命令通知</td></tr><tr><td align="center">$</td><td align="left">字符串命令通知</td></tr><tr><td align="center">l</td><td align="left">列表命令通知</td></tr><tr><td align="center">s</td><td align="left">结合命令通知</td></tr><tr><td align="center">h</td><td align="left">哈希命令通知</td></tr><tr><td align="center">z</td><td align="left">有序集合命令通知</td></tr><tr><td align="center">x</td><td align="left">过期事件:每当有过期键被删除时发送</td></tr><tr><td align="center">e</td><td align="left">驱逐(evict)事件:每当有键因为maxmemory政策而被删除时发送</td></tr><tr><td align="center">A</td><td align="left">参数g$lshzxe的别名</td></tr></tbody></table><h4 id="二、检查事件是否正常"><a href="#二、检查事件是否正常" class="headerlink" title="二、检查事件是否正常"></a>二、检查事件是否正常</h4><pre><code>1 redis-cli --csv psubscribe &#39;*&#39;  2 # 结果   3 Reading messages... (press Ctrl-C to quit)  4 &quot;psubscribe&quot;,&quot;*&quot;,1</code></pre><h4 id="三、配置回调函数"><a href="#三、配置回调函数" class="headerlink" title="三、配置回调函数"></a>三、配置回调函数</h4><p>在python的视图类中进行配置</p><pre><code class="js"># 连接redis数据库redis = Redis(host=&#39;127.0.0.1&#39;, port=6379, decode_responses=True)# 监听新消息pubsub = redis.pubsub()# 定义触发事件def orderbuy(msg):    order_id = str(msg[&#39;data&#39;])    # 获取订单对象    order = Order.objects.get(order_id=order_id)    # 判断用户是否已经付款    if str(order.status) == &quot;1&quot;:        # 取消订单,更改订单状态        Order.objects.filter(order_id=order_id).update(status=&quot;2&quot;)        # 获取订单中的所有商品        goods = order.objects.all()        # 遍历商品        for good in goods:            # 获取订单中的商品数量            count = good.count            print(count)            # 获取name商品            name = good.name            # 将库存重新增加到sku的stock中去            name.stock += count            # 从销量中减去已经取消的数量            name.sales -= count            name.save()#订阅redis键空间通知pubsub.psubscribe(**&#123;&#39;__keyevent@0__:expired&#39;: event_handler&#125;)# 死循环,接收订阅的通知while True:    message = pubsub.get_message()    if message:        print(message)    else:        time.sleep(0.1)</code></pre><pre><code>keyevent@0:expired’:设定通知类型: keyspace、keyevent设置事件类型: expired选中数据库号: @0()</code></pre><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>在购物车项目中进行添加，先在终端开启redis的键空间，然后开启键空间，在新的终端打开redis进行创建数据，就会有数据发送给键空间，然后保存，最后在python的视图函数中进行配置redis监听数据，判断是否支持，再发送数据给键空间，进行无线循环获取订阅获取的通知。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;/glblogs/images/river.png&quot; alt=&quot;cover&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;Redis键空间介绍&quot;&gt;&lt;a href=&quot;#Redis键空间介绍&quot; class=&quot;headerlink&quot; title=&quot;Redis键空间介绍&quot;&gt;&lt;/a</summary>
+      
+    
+    
+    
+    <category term="redis" scheme="http://example.com/categories/redis/"/>
+    
+    
+    <category term="redis键空间事件" scheme="http://example.com/tags/redis%E9%94%AE%E7%A9%BA%E9%97%B4%E4%BA%8B%E4%BB%B6/"/>
     
   </entry>
   
