@@ -192,31 +192,6 @@
     
     
     <entry>
-      <title>Redis订阅与发布</title>
-      <link href="/glblogs/2021/02/01/Sday08/"/>
-      <url>/glblogs/2021/02/01/Sday08/</url>
-      
-        <content type="html"><![CDATA[<p><img src="/glblogs/images/river.png" alt="cover"></p><h4 id="一、什么是Redis"><a href="#一、什么是Redis" class="headerlink" title="一、什么是Redis"></a>一、什么是Redis</h4><p>Redis是一个开源的内存数据库，它以键值对的形式存储数据。由于数据存储在内存中，因此Redis的速度很快，但是每次重启Redis服务时，其中的数据也会丢失，因此，Redis也提供了持久化存储机制(AOF,RDB)，将数据以某种形式保存在文件中，每次重启时，可以自动从文件加载数据到内存当中。 </p><h4 id="二、什么是发布订阅"><a href="#二、什么是发布订阅" class="headerlink" title="二、什么是发布订阅"></a>二、什么是发布订阅</h4><p>Redis 发布订阅是一种消息通信模式：发送者发送消息，订阅者接收消息。</p><h4 id="三、发布者"><a href="#三、发布者" class="headerlink" title="三、发布者"></a>三、发布者</h4><p>发布者是用来发布消息</p><p>publish 将信息发送到指定的频道</p><p>语法:</p><pre><code>publish channel message</code></pre><p> 返回结果:</p><pre><code>接收到信息的订阅者数量</code></pre><pre><code class="js">import timeimport redisnumber = [&#39;2000&#39;, &#39;2001&#39;, &#39;2002&#39;, &#39;2003&#39;]sing = [&#39;12&#39;, &#39;30&#39;, &#39;1&#39;, &#39;30&#39;]redis = redis.Redis(host=&#39;127.0.0.1&#39;, port=&#39;6379&#39;, db=0, password=&#39;密码即可&#39;)for i in range(len(number)):    value = str(number[i]) + &#39; &#39; + str(sing[i])    redis.publish(&quot;ceshi&quot;, value)  #发布消息到ceshi</code></pre><h4 id="三、订阅者"><a href="#三、订阅者" class="headerlink" title="三、订阅者"></a>三、订阅者</h4><pre><code class="js">import timeimport redisredis = redis.Redis(host=&#39;127.0.0.1&#39;, port=&#39;6379&#39;, db=1, password=&#39;密码即可&#39;)ps = redis.pubsub()ps.subscribe(&#39;liao&#39;)  #从liao订阅消息for item in ps.listen():        #监听状态：有消息发布了就拿过来    if i[&#39;type&#39;] == &#39;message&#39;:        print i[&#39;change&#39;]        print i[&#39;data&#39;]</code></pre><h4 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h4><p>①连接方式使用python连接redis<br>②是订阅方法。这里使用的是Redis类中的pubsub方法。连接好之后，可使用subscribe方法来订阅redis消息。其中subscribe是订阅一个频道，之后就可以开始监听了。</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> redis </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> Redis订阅与发布 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>redis键空间事件</title>
       <link href="/glblogs/2021/02/01/Sday09/"/>
       <url>/glblogs/2021/02/01/Sday09/</url>
@@ -234,6 +209,31 @@
         <tags>
             
             <tag> redis键空间事件 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Redis订阅与发布</title>
+      <link href="/glblogs/2021/02/01/Sday08/"/>
+      <url>/glblogs/2021/02/01/Sday08/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/glblogs/images/river.png" alt="cover"></p><h4 id="一、什么是Redis"><a href="#一、什么是Redis" class="headerlink" title="一、什么是Redis"></a>一、什么是Redis</h4><p>Redis是一个开源的内存数据库，它以键值对的形式存储数据。由于数据存储在内存中，因此Redis的速度很快，但是每次重启Redis服务时，其中的数据也会丢失，因此，Redis也提供了持久化存储机制(AOF,RDB)，将数据以某种形式保存在文件中，每次重启时，可以自动从文件加载数据到内存当中。 </p><h4 id="二、什么是发布订阅"><a href="#二、什么是发布订阅" class="headerlink" title="二、什么是发布订阅"></a>二、什么是发布订阅</h4><p>Redis 发布订阅是一种消息通信模式：发送者发送消息，订阅者接收消息。</p><h4 id="三、发布者"><a href="#三、发布者" class="headerlink" title="三、发布者"></a>三、发布者</h4><p>发布者是用来发布消息</p><p>publish 将信息发送到指定的频道</p><p>语法:</p><pre><code>publish channel message</code></pre><p> 返回结果:</p><pre><code>接收到信息的订阅者数量</code></pre><pre><code class="js">import timeimport redisnumber = [&#39;2000&#39;, &#39;2001&#39;, &#39;2002&#39;, &#39;2003&#39;]sing = [&#39;12&#39;, &#39;30&#39;, &#39;1&#39;, &#39;30&#39;]redis = redis.Redis(host=&#39;127.0.0.1&#39;, port=&#39;6379&#39;, db=0, password=&#39;密码即可&#39;)for i in range(len(number)):    value = str(number[i]) + &#39; &#39; + str(sing[i])    redis.publish(&quot;ceshi&quot;, value)  #发布消息到ceshi</code></pre><h4 id="三、订阅者"><a href="#三、订阅者" class="headerlink" title="三、订阅者"></a>三、订阅者</h4><pre><code class="js">import timeimport redisredis = redis.Redis(host=&#39;127.0.0.1&#39;, port=&#39;6379&#39;, db=1, password=&#39;密码即可&#39;)ps = redis.pubsub()ps.subscribe(&#39;liao&#39;)  #从liao订阅消息for item in ps.listen():        #监听状态：有消息发布了就拿过来    if i[&#39;type&#39;] == &#39;message&#39;:        print i[&#39;change&#39;]        print i[&#39;data&#39;]</code></pre><h4 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h4><p>①连接方式使用python连接redis<br>②是订阅方法。这里使用的是Redis类中的pubsub方法。连接好之后，可使用subscribe方法来订阅redis消息。其中subscribe是订阅一个频道，之后就可以开始监听了。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> redis </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Redis订阅与发布 </tag>
             
         </tags>
       
