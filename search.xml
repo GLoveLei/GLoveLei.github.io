@@ -4,6 +4,51 @@
   
     
     <entry>
+      <title>OpenAi</title>
+      <link href="2023/03/02/SOpenAi/"/>
+      <url>2023/03/02/SOpenAi/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/images/openai.jpg" alt="cover"></p><h2 id="OpenAI库的SDK方式接入"><a href="#OpenAI库的SDK方式接入" class="headerlink" title="OpenAI库的SDK方式接入"></a>OpenAI库的SDK方式接入</h2><p>OpenAI官方同步更新了接口Api的三方库openai，版本为0.27.0，如果要使用新的模型gpt-3.5-turbo，就必须同步安装最新版本：</p><pre><code>pip3 install openai==0.27.0</code></pre><p>随后建立chat.py文件：</p><pre><code class="python">import openaiopenai.api_key = &quot;openai的接口apikey&quot; completion = openai.ChatCompletion.create(  model=&quot;gpt-3.5-turbo&quot;,   messages=[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;北国风光，千里冰封，万里雪飘，请接着续写，使用沁园春的词牌&quot;&#125;])print(completion[&quot;choices&quot;][0][&quot;message&quot;][&quot;content&quot;])</code></pre><p>程序返回：</p><pre><code class="text">瑶池冰缘，雪舞凄美， 隔窗寒意，似乎钻进衣袖。寒塘渡鸭，雪中梅影， 孤独是一片银白的姿态。冰雪如花，开放在草莓园里， 可爱的雪人，瑟瑟发抖着欢呼。北风凛冽，寒暄难挡， 四季明媚，但冬日尤甜美。千里冰封，万里雪飘， 窗外天下壮观，此时正是京城美。</code></pre><p>闪电般秒回，让用惯了ChatGPT网页端的我们几乎不能适应。</p><p>gpt-3.5-turbo，对得起turbo的加成，带涡轮的ChatGPT就是不一样。</p><h2 id="ChatGPT聊天上下文"><a href="#ChatGPT聊天上下文" class="headerlink" title="ChatGPT聊天上下文"></a>ChatGPT聊天上下文</h2><p>我们知道ChatGPT的最大特色就是可以联系语境中的上下文，换句话说，ChatGPT可以根据之前的回答来优化之后的回答，形成上下文关系，让人机对话更加连贯和富有逻辑性。</p><p>这里取决于输入参数中的role参数，每一个role的取值，对应的场景不一样，其中system用于在对话开始时给ChatGPT一个指示或声明，有点像引导词，使得后续的回答更具有个性化和专业化。user是用于给用户提问的或者说是用来给用户输入引导词的。assistant顾名思义，是用于输入ChatGPT的回答内容:</p><pre><code class="python">import openaiopenai.api_key = &quot;apikey&quot; class ChatGPT:    def __init__(self,chat_list=[]) -&gt; None:        # 初始化对话列表        self.chat_list = []    # 显示接口返回    def show_conversation(self,msg_list):        for msg in msg_list:            if msg[&#39;role&#39;] == &#39;user&#39;:                print(f&quot;Me: &#123;msg[&#39;content&#39;]&#125;\n&quot;)            else:                print(f&quot;ChatGPT: &#123;msg[&#39;content&#39;]&#125;\n&quot;)    # 提示chatgpt    def ask(self,prompt):        self.chat_list.append(&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:prompt&#125;)        response = openai.ChatCompletion.create(model=&quot;gpt-3.5-turbo&quot;,messages=self.chat_list)        answer = response.choices[0].message[&#39;content&#39;]        # 添加历史对话，形成上下文关系        self.chat_list.append(&#123;&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:answer&#125;)        self.show_conversation(self.chat_list)</code></pre><p>这里每一次会话都会加入chat_list的聊天列表，角色为assistant，为了让ChatGPT分析上下文，下面开始测试：</p><pre><code class="python">if __name__ == &#39;__main__&#39;:    chat = ChatGPT()    chat.ask(&quot;你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光&quot;)</code></pre><p>程序返回：</p><pre><code class="text">Me: 你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光ChatGPT: 北国春光，清冽宜人。望眼欲穿的远山如翠起伏，遥远而缥缈。层层叠叠的林木，新绿徜徉，婆娑摇曳。风儿吹起，沁人心脾，点点梅花飘至，宛如仙境。花间蝶恋，春色满园。莺莺燕燕，鸟鸣花落，时时惹人遐思。碧空万里，蓝天白云，彩云飘飘，缤纷夺目。柳絮飘飘，轻羽翩翩，小河潺潺，流水声声，婉转动人。清风拂面，落英缤纷。听着草虫唱起，充满阳光的气息，轻轻飘荡，仿佛一条无形的小河，展开春天的美好，留下美好的记忆。人间万象，却只有这春色无边，似乎奔向远方的快乐。</code></pre><p>此时再次发问：</p><pre><code class="python">chat.ask(&quot;请使用另外一种粗狂阳刚的风格再写一遍上面的词&quot;)</code></pre><p>程序返回：</p><pre><code class="text">Me: 请使用另外一种粗狂阳刚的风格再写一遍上面的词ChatGPT: 北国春光，不柔不媚，金色的阳光照在地上，充满了男子气概。草原上风吹不断，那些疯狂的野花，在春风中舞蹈。看！那些猛禽静静地盘旋在高空，监视着整片草原，威武雄壮。花丛间，一只雄性蜂鹰跃跃欲飞，看上去仿佛要冲破天际。这里的春天有时带着风沙，但这并不能阻止狂放豪迈的草原奔腾前行，而这样的北国春光，怎会轻易被遗忘！</code></pre><p>虽然内容有些尬，但确实联系了上下文。</p><p>需要注意的是，token不仅计算ChatGPT的接口返回内容，也会计算用户的发送内容，token的计算方法不是简单的一词一个，例如中文输入，一个中文汉字占2个字节数，而对于一次中文测试中，50个汉字被算为100个tokens，差不多是英文的一倍，而token还计算api发送中的角色字段，如果像上文一样实现上下文操作，就必须发送ChatGPT接口返回的历史聊天列表，这意味着ChatGPT上下文聊天的成本并不是我们想象中的那么低，需要谨慎使用。</p><h2 id="原生ChatGPT接口异步访问"><a href="#原生ChatGPT接口异步访问" class="headerlink" title="原生ChatGPT接口异步访问"></a>原生ChatGPT接口异步访问</h2><p>除了官方的SDK，新接口模型也支持原生的Http请求方式，比如使用requests库：</p><pre><code class="text">pip3 install requests</code></pre><p>直接请求openai官方接口：</p><pre><code class="python">import requestsh = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: &#39;Bearer apikey&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;r = requests.post(url=u, headers=h, json=d).json()print(r)</code></pre><p>程序返回：</p><pre><code class="json">&#123;&#39;id&#39;: &#39;chatcmpl-6qDNQ9O4hZPDT1Ju902coxypjO0mY&#39;, &#39;object&#39;: &#39;chat.completion&#39;, &#39;created&#39;: 1677902496, &#39;model&#39;: &#39;gpt-3.5-turbo-0301&#39;, &#39;usage&#39;: &#123;&#39;prompt_tokens&#39;: 20, &#39;completion_tokens&#39;: 100, &#39;total_tokens&#39;: 120&#125;, &#39;choices&#39;: [&#123;&#39;message&#39;: &#123;&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;\n\n同步请求和异步请求是指在客户端向服务器发送请求时，客户端等待服务器响应的方式不同。\n\n同步请求是指客户端发送请求后，必须等待服务器响应后才能继续执行后续的代码。在等待服务器响应的过程中，客户端的界面会被阻塞，用户无法进行&#39;&#125;, &#39;finish_reason&#39;: &#39;length&#39;, &#39;index&#39;: 0&#125;]&#125;</code></pre><p>ChatGPT原生接口也支持异步方式请求，这里使用httpx:</p><pre><code class="text">pip3 install httpx</code></pre><p>编写异步请求：</p><pre><code class="python">h = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: &#39;Bearer apikey&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;import asyncioimport httpxasync def main():    async with httpx.AsyncClient() as client:        resp = await client.post(url=u, headers=h, json=d)        result = resp.json()        print(result)asyncio.run(main())</code></pre><p>程序返回:</p><pre><code class="json">&#123;&#39;id&#39;: &#39;chatcmpl-6qDNQ9O4hZPDT1Ju902coxypjO0mY&#39;, &#39;object&#39;: &#39;chat.completion&#39;, &#39;created&#39;: 1677902496, &#39;model&#39;: &#39;gpt-3.5-turbo-0301&#39;, &#39;usage&#39;: &#123;&#39;prompt_tokens&#39;: 20, &#39;completion_tokens&#39;: 100, &#39;total_tokens&#39;: 120&#125;, &#39;choices&#39;: [&#123;&#39;message&#39;: &#123;&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;\n\n同步请求和异步请求是指在客户端向服务器发送请求时，客户端等待服务器响应的方式不同。\n\n同步请求是指客户端发送请求后，必须等待服务器响应后才能继续执行后续的代码。在等待服务器响应的过程中，客户端的界面会被阻塞，用户无法进行&#39;&#125;, &#39;finish_reason&#39;: &#39;length&#39;, &#39;index&#39;: 0&#125;]&#125;</code></pre><p>我们也可以将异步请求方式封装到对话类中，完整代码：</p><pre><code class="python">import openaiimport asyncioimport httpxopenai.api_key = &quot;apikey&quot; h = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: f&#39;Bearer &#123;openai.api_key&#125;&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;class ChatGPT:    def __init__(self,chat_list=[]) -&gt; None:        # 初始化对话列表        self.chat_list = []    # 异步访问    async def ask_async(self,prompt):        d[&quot;messages&quot;][0][&quot;content&quot;] = prompt        async with httpx.AsyncClient() as client:            resp = await client.post(url=u, headers=h, json=d)            result = resp.json()            print(result)    # 显示接口返回    def show_conversation(self,msg_list):        for msg in msg_list:            if msg[&#39;role&#39;] == &#39;user&#39;:                print(f&quot;Me: &#123;msg[&#39;content&#39;]&#125;\n&quot;)            else:                print(f&quot;ChatGPT: &#123;msg[&#39;content&#39;]&#125;\n&quot;)    # 提示chatgpt    def ask(self,prompt):        self.chat_list.append(&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:prompt&#125;)        response = openai.ChatCompletion.create(model=&quot;gpt-3.5-turbo&quot;,messages=self.chat_list)        answer = response.choices[0].message[&#39;content&#39;]        # 添加历史对话，形成上下文关系        self.chat_list.append(&#123;&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:answer&#125;)        self.show_conversation(self.chat_list)if __name__ == &#39;__main__&#39;:    chat = ChatGPT()    chat.ask(&quot;你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光&quot;)    chat.ask(&quot;请使用另外一种粗狂阳刚的风格再写一遍上面的词&quot;)    asyncio.run(chat.ask_async(&quot;请解释同步请求接口和异步请求接口的区别&quot;))</code></pre><h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>低成本ChatGPT接口模型gpt-3.5-turbo更容易接入三方的客户端，比如微信、QQ、钉钉群之类，比起ChatGPT网页端，ChatGPT接口的响应速度更加迅速且稳定，ChatGPT，永远的神，没有之一，且不可替代，最后奉上异步上下文封装项目，与君共觞：github.com/zcxey2911/chatgpt_api_Contextual_async</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> OpenAI库的SDK方式接入 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>GoLang的Hugo配合nginx来打造属于自己的纯静态博客系统</title>
+      <link href="2022/05/23/Sid-22-05/"/>
+      <url>2022/05/23/Sid-22-05/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/images/goblog.png" alt="cover"><br>Go lang无疑是目前的当红炸子鸡，极大地提高了后端编程的效率，同时有着极高的性能。借助Go语言我们 可以用同步的方式写出高并发的服务端软件，同时，Go语言也是云原生第一语言，Docker，Kubernetes等等著名的项目都是使用Go语言实现的。</p><p>Hugo 是基于 Go 语言的静态网站生成器。</p><p>什么是静态网站生成器？顾名思义，就是以最快的速度生成一个高可用的web页面，我们知道Django作为一款非常流行的框架被广泛应用，但是部署起来实在是太麻烦了，各种命令各种配置，动态页面必然要涉及数据库的配置和操作，另外只要涉及数据库操作，你就不得不考虑sql注入等一系列的安全因素。而纯静态页面则没有这个烦恼，如果我们只需要一个简单的站点，一些简单的功能和页面，比如博客，我们只想以极简的方式用markdown语法写下文字或者代码，让服务器访问纯静态页面，这就是静态网站生成器可以提供给我们的好处。</p><p>为啥选择Hugo?</p><p>Hugo是一种go语言编写的静态网站生成器。适用于搭建个人blog、公司主页、help等网站，是一种小型的CMS系统。静态站点的好处就是快速、安全、易于部署，方便管理。</p><p>Hugo的优点包含但不限于：</p><pre><code>世界上最快的静态网站生成工具，5秒生成6000个页面文档为Markdown格式,语法超简单Hugo 可以做静态文件生成工具，还是高性能web 服务；丰富的站点迁移工具，可以将wordpress，Ghost，Jekyll，DokuWiki，Blogger轻松迁移至 Hugo超详细的文档活跃的社区更加自由的内容组织方式丰富的主题模板，可以让你的网站更加炫目多彩</code></pre><p>多环境支持：macos ，linux，windows</p><p>首先，可以去go的官网网站下载安装包  <a href="https://golang.org/dl/">https://golang.org/dl/</a> 然后直接双击安装即可，不需要配置环境变量，因为安装过程自动配置，安装完毕后，打开命令行，输入</p><pre><code class="shell">go version</code></pre><p>显示主版本号即表示安装成功</p><p>然后，可以进行hugo的在线源码编译安装，打开命令行，输入下面的命令</p><pre><code class="shell">go get -u -v github.com/spf13/hugogo build -o hugo main.gomv hugo $GOPATH/bin</code></pre><p>如果你不想在线编译安装，也可以去hugo的官网 <a href="https://github.com/gohugoio/hugo/releases">https://github.com/gohugoio/hugo/releases</a> 下载稳定版的压缩包，解压之后配置一下环境变量也可以</p><p>装完以后，在命令行内输入</p><pre><code class="shell">hugo version</code></pre><p>打印出版本号即表示hugo安装成功</p><p>在命令行中输入命令</p><pre><code class="shell">hugo new site hugo_blog</code></pre><p>就生成了一个名字为hugo_blog的新站点，可以感受到速度非常快，和vue.js创建新站点的速度比起来简直天差地别</p><p>打开配置文件config.toml，这是hugo的站点的相关配置，可以进行一些个性化的定制，改为下面这样：</p><pre><code class="python">baseURL = &quot;/&quot;languageCode = &quot;en-us&quot;title = &quot;我的博客&quot;#指定主题theme = &quot;hyde&quot;[params]#博客简介description = &quot;这里是刘悦的个人博客&quot;#博客主题颜色themeColor = &quot;theme-base-08&quot;</code></pre><p>可以看到我们制定了一个主题hyde，添加了Theme后的站点才有血有肉，丰富多彩。</p><p>更多的主题可以在这个上面下载，都是免费而开源的：<a href="https://themes.gohugo.io/">https://themes.gohugo.io/</a></p><p>进入到站点内的themes目录，输入命令下载hyde主题，hugo有很多漂亮的主题可以选择</p><pre><code class="shell">git clone https://github.com/spf13/hyde.git</code></pre><p>结构和样式有了，我们还没有内容。我们来创建站点的第一篇文章</p><p>输入命令</p><pre><code class="shell">hugo new one.md</code></pre><p>hugo在content下创建one.md文件，我们编写一些文件内容：</p><pre><code class="markdown">---date: &quot;2019-05-23&quot;title: &quot;第一篇文章&quot;---### 你好啊123123123print(&#39;hello world&#39;)</code></pre><p>然后在命令行中输入</p><pre><code class="shell">hugo server</code></pre><p>然后访问本地：1313 端口</p><p>至此，非常快速而简单博客已经做好了，那么如何部署到线上呢？非常简单输入命令进行打包操作：</p><pre><code class="shell">hugo --baseUrl=&quot;/&quot;</code></pre><p>hugo就会把你的站点生成纯静态页面，然后打包到public文件夹</p><p>将public上传到阿里云服务器的root目录下</p><p>修改nginx配置文件</p><pre><code class="shell">vim /etc/nginx/conf.d/default.conf</code></pre><p>监听80端口，并且项目目录指定/root/public</p><pre><code class="shell">server &#123;    listen       80;    server_name  localhost;    access_log      /root/md_vue_access.log;    error_log       /root/md_vue_error.log;    client_max_body_size 75M;    location / &#123;        root /root/public;        index index.html;    &#125;    error_log    /root/md_vue/error.log    error;&#125;</code></pre><p>重启nginx systemctl restart nginx.service 然后访问博客就搭建好了</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos7.6上面部署基于redis的分布式爬虫scrapy-redis</title>
+      <link href="2022/04/22/Sid-22-04/"/>
+      <url>2022/04/22/Sid-22-04/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/images/scrapy.png" alt="cover"></p><p>Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。</p><p>而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。</p><p><img src="/images/scrapy_01.jpeg"> </p><p>说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬</p><p>首先分别在主机和从机上安装需要的爬虫库</p><pre><code class="shell">pip3 install requests scrapy scrapy-redis redis</code></pre><p>在主机中安装redis</p><pre><code class="shell">#安装redisyum install redis启动服务systemctl start redis查看版本号redis-cli --version设置开机启动systemctl enable redis.service</code></pre><p>修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口</p><pre><code class="shell">#bind 127.0.0.1protected-mode no</code></pre><p>改完配置后，别忘了重启服务才能生效</p><pre><code class="shell">systemctl restart redis</code></pre><p>然后分别新建爬虫项目</p><pre><code class="shell">scrapy startproject myspider</code></pre><p>在项目的spiders目录下新建test.py</p><pre><code class="python">#导包import scrapyimport osfrom scrapy_redis.spiders import RedisSpider#定义抓取类#class Test(scrapy.Spider):class Test(RedisSpider):    #定义爬虫名称，和命令行运行时的名称吻合    name = &quot;test&quot;    #定义redis的key    redis_key = &#39;test:start_urls&#39;    #定义头部信息    haders = &#123;        &#39;User-Agent&#39;: &#39;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36&#39;    &#125;    def parse(self, response):        print(response.url)        pass</code></pre><p>然后修改配置文件settings.py，增加下面的配置,其中redis地址就是在主机中配置好的redis地址:</p><pre><code class="python">BOT_NAME = &#39;myspider&#39;SPIDER_MODULES = [&#39;myspider.spiders&#39;]NEWSPIDER_MODULE = &#39;myspider.spiders&#39;#设置中文编码FEED_EXPORT_ENCODING = &#39;utf-8&#39;# scrapy-redis 主机地址REDIS_URL = &#39;redis://root@39.106.228.179:6379&#39;#队列调度SCHEDULER = &quot;scrapy_redis.scheduler.Scheduler&quot;#不清除缓存SCHEDULER_PERSIST = True#通过redis去重DUPEFILTER_CLASS = &quot;scrapy_redis.dupefilter.RFPDupeFilter&quot;#不遵循robotsROBOTSTXT_OBEY = False</code></pre><p>最后，可以在两台主机上分别启动scrapy服务</p><pre><code class="shell">scrapy crawl test</code></pre><p>此时，服务已经起来了，只不过redis队列中没有任务，在等待状态</p><p>进入主机的redis</p><pre><code class="shell">redis-cli</code></pre><p>将任务队列push进redis</p><pre><code class="shell">lpush test:start_urls http://baidu.comlpush test:start_urls http://chouti.com</code></pre><p>两台服务器的爬虫服务分别领取了队列中的任务进行抓取，同时利用redis的特性，url不会重复抓取</p><p>爬取任务结束之后，可以通过flushdb命令来清除地址指纹，这样就可以再次抓取历史地址了。</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>工单项目</title>
       <link href="2021/03/28/S%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE/"/>
       <url>2021/03/28/S%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE/</url>
@@ -398,6 +443,161 @@
             <tag> Vue拦截器 </tag>
             
         </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos上配置nginx+uwsgi+负载均衡配置</title>
+      <link href="2020/05/21/Sid-20-05/"/>
+      <url>2020/05/21/Sid-20-05/</url>
+      
+        <content type="html"><![CDATA[<p>如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。</p><p>申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录</p><p>证书后下载 key、pem后缀文件</p><p>然后打开nginx配置文件</p><pre><code class="shell">vim /etc/nginx/conf.d/default.conf</code></pre><p>同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口</p><pre><code class="shell">server &#123;    listen       80;    server_name  m9u.cn;    #这一步是http重定向到https，也可以不写    rewrite ^(.*)$ https://$&#123;server_name&#125;$1 permanent;    access_log      /root/md_vue_access.log;    error_log       /root/md_vue_error.log;    client_max_body_size 75M;    location / &#123;        root /root/fast_vue;        index index.html;        try_files $uri $uri/ /index.html;    &#125;    error_log    /root/fast_vue/error.log    error;&#125;server &#123;        listen 443;        server_name m9u.cn;        ssl on;        ssl_certificate      /root/2238250_m9u.cn.pem;        ssl_certificate_key  /root/2238250_m9u.cn.key;        ssl_session_timeout 5m;        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;        ssl_prefer_server_ciphers on;        location / &#123;        root /root/fast_vue;        index index.html;        try_files $uri $uri/ /index.html;        &#125;    &#125;</code></pre><p>重启nginx</p><pre><code class="shell">systemctl restart nginx.service</code></pre><p>使用https//访问域名</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos上配置nginx+uwsgi+负载均衡配置</title>
+      <link href="2020/05/17/Sid-20-04/"/>
+      <url>2020/05/17/Sid-20-04/</url>
+      
+        <content type="html"><![CDATA[<p>负载均衡在服务端开发中算是一个比较重要的特性。因为Nginx除了作为常规的Web服务器外，还会被大规模的用于反向代理后端，Nginx的异步框架可以处理很大的并发请求，把这些并发请求hold住之后就可以分发给后台服务端(backend servers, 后面简称backend)来做复杂的计算、处理和响应，并且在业务量增加的时候可以方便地扩容后台服务器。</p><p>说白了就是，随着业务和用户规模的增长，仅仅一台服务器无法肩负起高并发的响应，所以需要两台以上的服务器共同分担压力，而分担压力的媒介就是万能的Nginx。</p><p><img src="/images/nginx_02.jpeg"></p><p>首先，利用wsgi在不同的端口上起两个Django服务，比如8002和8003</p><p>然后修改nginx网站配置 vim /etc/nginx/conf.d/default.conf，将原uwsgi_pass注释，改成变量绑定</p><pre><code class="angular2svg">server &#123;    listen       80;    server_name  localhost;    access_log      /root/myweb_access.log;    error_log       /root/myweb_error.log;    client_max_body_size 75M;    location / &#123;        include uwsgi_params;        #uwsgi_pass 127.0.0.1:8000;        uwsgi_pass mytest;        uwsgi_param UWSGI_SCRIPT mypro.wsgi;        uwsgi_param UWSGI_CHDIR  /root/mypro;    &#125;    location /static &#123;        alias /root/mypro/static;    &#125;&#125;</code></pre><p>然后修改主配置文件 vim /etc/nginx/nginx.conf，在http配置内添加负载均衡配置</p><pre><code class="sass">http &#123;    include       /etc/nginx/mime.types;    default_type  application/octet-stream;    log_format  main  &#39;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#39;                      &#39;$status $body_bytes_sent &quot;$http_referer&quot; &#39;                      &#39;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#39;;    access_log  /var/log/nginx/access.log  main;    sendfile        on;    #tcp_nopush     on;    keepalive_timeout  65;    #gzip  on;    include /etc/nginx/conf.d/*.conf;    upstream mytest &#123;    server 127.0.0.1:8002;  #负载均衡服务器群    server 127.0.0.1:8003;    &#125;&#125;</code></pre><p>然后重启服务即可：</p><pre><code class="shell">systemctl restart nginx.service</code></pre><p>值得注意的是常用的负载均衡策略有以下几种：</p><pre><code class="shell">1、轮询（默认）每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器down掉，能自动剔除。upstream backserver &#123;    server 192.168.0.14;    server 192.168.0.15;&#125;2、权重 weight指定轮询几率，weight和访问比率成正比，用于后端服务器性能不均的情况。upstream backserver &#123;    server 192.168.0.14 weight=3;    server 192.168.0.15 weight=7;&#125;3、ip_hash（ IP绑定）上述方式存在一个问题就是说，在负载均衡系统中，假如用户在某台服务器上登录了，那么该用户第二次请求的时候，因为我们是负载均衡系统，每次请求都会重新定位到服务器集群中的某一个，那么已经登录某一个服务器的用户再重新定位到另一个服务器，其登录信息将会丢失，这样显然是不妥的。我们可以采用ip_hash指令解决这个问题，如果客户已经访问了某个服务器，当用户再次访问时，会将该请求通过哈希算法，自动定位到该服务器。每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session的问题。upstream backserver &#123;    ip_hash;    server 192.168.0.14:88;    server 192.168.0.15:80;&#125;4、fair（第三方插件）按后端服务器的响应时间来分配请求，响应时间短的优先分配。upstream backserver &#123;    server server1;    server server2;    fair;&#125;5、url_hash（第三方插件）按访问url的hash结果来分配请求，使每个url定向到同一个后端服务器，后端服务器为缓存时比较有效。upstream backserver &#123;    server squid1:3128;    server squid2:3128;    hash $request_uri;    hash_method crc32;&#125;</code></pre>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.4</title>
+      <link href="2020/05/05/Sid-20-03/"/>
+      <url>2020/05/05/Sid-20-03/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/images/nginx_01.png" alt="cover"></p><p>一直以来想写一篇完整的在阿里云服务器上部署Django服务结合uwsgi，并且通过nginx做反向代理。因为网上的攻略鱼龙混杂，加上技术不断更新，一些年代久远的文章很容易让人在部署的过程中掉坑里，无法自拔，所以本篇文章以最新的阿里云服务器centos7.6为背景，完全阐述如何部署，亲测可用，其实要说难点完全没有，只要按部就班，就不会有问题。</p><p>当你购买了阿里云的ecs，涉及ecs的有两个密码，一定要搞清楚，一个密码是远程链接密码，也就是通过浏览器连接服务器的密码，另外一个是实例密码，这个密码就是ecs的root密码，一般情况下，我们经常用到的是实例密码。</p><h4 id="安装python3-和-django-以及一些django扩展"><a href="#安装python3-和-django-以及一些django扩展" class="headerlink" title="安装python3 和 django 以及一些django扩展"></a>安装python3 和 django 以及一些django扩展</h4><pre><code class="shell">yum install epel-releaseyum install python36wget --no-check-certificate https://bootstrap.pypa.io/get-pip.pypython3 get-pip.py安装djangopip3 install pymysqlpip3 install pillowpip3 install pycryptodomepip3 install cryptographypip3 install Django==2.0.4pip3 install djangorestframeworkpip3 install django-cors-headerspip3 install celerypip3 install celery-with-redispip3 install django-celerypip3 install dwebsocket安装opencv-pythonyum  install  numpy  opencv*pip3 install opencv-pythonyum whatprovides libstdc++.so.6yum install libstdc++-4.4.7-3.el6.i686yum install libSM-1.2.2-2.el7.x86_64 --setopt=protected_multilib=false</code></pre><p>新建工程，并且测试</p><pre><code class="shell">django-admin startproject myprocd mypropython3 manage.py runserver 0.0.0.0:8000</code></pre><p>访问服务器 实例id：8000 查看</p><h4 id="安装mysql"><a href="#安装mysql" class="headerlink" title="安装mysql"></a>安装mysql</h4><pre><code class="shell">wget &#39;https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm&#39;rpm -Uvh mysql57-community-release-el7-11.noarch.rpmyum install -y mysql-community-server#启动服务systemctl start mysqld#查看服务状态systemctl status mysqld查看数据库密码grep &#39;temporary password&#39; /var/log/mysqld.log</code></pre><pre><code class="shell">然后利用这个密码进入mysql命令行 mysql -uroot -p查到的密码SET PASSWORD = PASSWORD(&#39;Admin123!&#39;);设置远程登录GRANT ALL PRIVILEGES ON *.* TO &#39;root&#39;@&#39;%&#39; IDENTIFIED BY &#39;Admin123!&#39; WITH GRANT OPTION;flush privileges;vim /etc/my.cnf在[mysqld]下面添加，不需要分号字符集:注意是utf8而不是utf-8!character-set-server=utf8这时候使用show variables like &#39;char%&#39;;就可以查看到字符集都是utf8了sql支持group by语句sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION设置时区为东八区default-time_zone = &#39;+8:00&#39;重启服务systemctl restart mysqld设置开机启动systemctl enable mysqldsystemctl daemon-reload如果需要更改为简单的密码1.停止mysql服务systemctl stop mysqld.service2.修改配置文件无密码登录vim  /etc/my.cnf在最后加上skip-grant-tables保存3.启动mysqlsystemctl  start  mysqld.service4.登录mysqlmysql -u root注意这里不要加-p5.修改密码，mysql5.7用此语法use mysql;update mysql.user set authentication_string=password(&#39;123456&#39;) where user=&#39;root&#39; ;  6.回到第二部把刚加的那句删掉保存，重启mysql就可以了</code></pre><p>测试mysql服务</p><h4 id="安装redis"><a href="#安装redis" class="headerlink" title="安装redis"></a>安装redis</h4><pre><code class="shell">yum install redis启动服务systemctl start redis查看版本号redis-cli --version设置开机启动systemctl enable redis.service</code></pre><p>测试redis服务</p><h4 id="安装mongodb"><a href="#安装mongodb" class="headerlink" title="安装mongodb"></a>安装mongodb</h4><pre><code class="shell">vim /etc/yum.repos.d/mongodb-org-3.4.repo#添加以下内容：[mongodb-org-3.4]  name=MongoDB Repository  baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.4/x86_64/  gpgcheck=0enabled=1  gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc清空缓存yum makecache安装yum -y install mongodb-org启动服务systemctl start mongod.service停止服务systemctl stop mongod.service查看服务状态systemctl status mongod.service重启服务systemctl restart mongod.service</code></pre><p>测试mongo</p><h4 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a>安装nginx</h4><pre><code class="shell">#设置源sudo rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm#安装yum install -y nginx#启动服务systemctl start nginx.service#关闭服务systemctl stop nginx.service#开机自启systemctl enable nginx.service#修改配置文件vim /etc/nginx/conf.d/default.conf改成下面的配置server &#123;    listen       80;    server_name  localhost;    access_log      /root/myweb_access.log;    error_log       /root/myweb_error.log;    client_max_body_size 75M;    location / &#123;        include uwsgi_params;        uwsgi_pass 127.0.0.1:8000;        uwsgi_param UWSGI_SCRIPT mypro.wsgi;        uwsgi_param UWSGI_CHDIR  /root/mypro;    &#125;    location /static &#123;        alias /root/mypro/static;    &#125;&#125;</code></pre><pre><code class="shell">设置项目权限chmod -R 755 /root/mypro</code></pre><pre><code class="shell">#修改配置vim /etc/nginx/nginx.conf将第一行改为 user root;然后重启nginx</code></pre><p>测试nginx服务,这里注意下，在不修改nginx配置文件的时候才会出现下面的欢迎页面，如果修改了以后是不能访问默认欢迎页面的</p><h4 id="安装uwsgi"><a href="#安装uwsgi" class="headerlink" title="安装uwsgi"></a>安装uwsgi</h4><pre><code class="shell">uWSGI本身也是web服务器，但因为性能不高，通过nginx中转能够发挥更好的效果安装依赖yum install python36-devel安装pip3 install uwsgi软连接ln -s /usr/local/python3/bin/uwsgi /usr/bin/uwsgi进入项目目录启动服务uwsgi --http :8000 --module mypro.wsgi效果和 python3 manage.py runserver 0.0.0.0:8000一致热启动uwsgi --http :8000 --module mypro.wsgi --py-autoreload=1进入项目，编写uwsgi.ini配置文件 vim mypro_uwsgi.ini</code></pre><pre><code class="shell">[uwsgi]chdir           = /root/mypromodule          = mypro.wsgimaster          = trueprocesses       = 3socket            = 0.0.0.0:8000vacuum          = truepythonpath      = /usr/bin/python3pidfile = /root/mypro/mypro.piddaemonize  = /root/mypro/uwsgi.log</code></pre><pre><code class="shell">启动项目，这里需要注意下，如果你想用uwsgi独立访问网站，就需要把上面配置文件中的socket改成http，如果想用nginx代理，就写成socketuwsgi --ini mypro_uwsgi.ini后台启动uwsgi -d --ini mypro_uwsgi.ini</code></pre><p>杀死和关闭 uwsgi服务</p><pre><code class="shell">killall -s INT /usr/local/bin/uwsgi</code></pre><p>停止服务</p><pre><code class="shell">uwsgi --stop mypro.pid</code></pre><p>重载服务</p><pre><code class="shell">uwsgi --reload mypro.pid查看服务ps aux|grep uwsgi</code></pre><p>最后，nginx通过监听80端口反向代理uwsgi启动的django服务，访问网站进行测试</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>支付宝(Alipay)退款(refund)接口的开发</title>
+      <link href="2020/05/03/Sid_20_02/"/>
+      <url>2020/05/03/Sid_20_02/</url>
+      
+        <content type="html"><![CDATA[<p>匆忙之中只考虑了支付，其实当交易发生之后一段时间内，由于买家或者卖家的原因需要退款时，卖家可以通过退款接口将支付款退还给买家，支付宝将在收到退款请求并且验证成功之后，按照退款规则将支付款按原路退到买家帐号上。 交易超过约定时间（签约时设置的可退款时间）的订单无法进行退款 支付宝退款支持单笔交易分多次退款，多次退款需要提交原支付订单的商户订单号和设置不同的退款单号。一笔退款失败后重新提交，要采用原来的退款单号。总退款金额不能超过用户实际支付金额。</p><p>那么根据支付宝的官方文档：<a href="https://docs.open.alipay.com/api_1/alipay.trade.refund">https://docs.open.alipay.com/api_1/alipay.trade.refund</a></p><p>扩充一下我们的支付宝支付类就可以了，从文档中可知，out_trade_no(支付订单号)，refund_amount(退款金额)，这两个参数是必须要传的，所以打开之前写好的pay.py文件，新增退款方法：   </p><pre><code class="python">#请求支付宝退款接口def api_alipay_trade_refund(self, refund_amount, out_trade_no=None, trade_no=None, **kwargs):        biz_content = &#123;            &quot;refund_amount&quot;: refund_amount        &#125;        biz_content.update(**kwargs)        if out_trade_no:            biz_content[&quot;out_trade_no&quot;] = out_trade_no        if trade_no:            biz_content[&quot;trade_no&quot;] = trade_no        data = self.build_body(&quot;alipay.trade.refund&quot;, biz_content)        url = self.__gateway + &quot;?&quot; + self.sign_data(data)        r = requests.get(url)        html = r.content.decode(&quot;utf-8&quot;)        return html</code></pre><p>然后在Django的视图方法中加一个退款视图</p><pre><code class="python">def refund(request):    #实例化支付类    alipay = get_ali_object()    #调用退款方法    order_string = alipay.api_alipay_trade_refund(    #订单号，一定要注意，这是支付成功后返回的唯一订单号    out_trade_no=&quot;20190503214355&quot;,    #退款金额，注意精确到分，不要超过订单支付总金额    refund_amount=&quot;20.00&quot;,    #回调网址    notify_url=&#39;http://localhost:8000/md_admin/alipayreturn&#39;    )    return HttpResponse(order_string)</code></pre><p>值得一提的是，之前写得支付demo中，订单号的生成并不严谨，直接将time.time()拿来用了，其实应该将日期格式化这样订单号的可读性会增加，这里补上这个函数</p><pre><code class="python">#根据日期生成唯一订单号def get_order_code():    order_no = str(time.strftime(&#39;%Y%m%d%H%M%S&#39;, time.localtime(time.time())))    return order_no</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>添加基于websocket的实时通信，主动推送，聊天室及客服系统</title>
+      <link href="2020/04/17/Sid_19_04/"/>
+      <url>2020/04/17/Sid_19_04/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/images/websocket.png" alt="cover"></p><p>websocket是个啥？</p><p>webSocket是一种在单个TCP连接上进行全双工通信的协议</p><p>webSocket使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输</p><p>现在，很多网站为了实现推送技术，所用的技术都是轮询。轮询是在特定的的时间间隔（如每1秒），由浏览器对服务器发出HTTP请求，然后由服务器返回最新的数据给客户端的浏览器。这种传统的模式带来很明显的缺点，即浏览器需要不断的向服务器发出请求，然而HTTP请求可能包含较长的头部，其中真正有效的数据可能只是很小的一部分，显然这样会浪费很多的带宽等资源。<br>而比较新的技术去做轮询的效果是Comet。这种技术虽然可以双向通信，但依然需要反复发出请求。而且在Comet中，普遍采用的长链接，也会消耗服务器资源。</p><p>在这种情况下，HTML5定义了WebSocket协议，能更好的节省服务器资源和带宽，并且能够更实时地进行通讯</p><p>轮询是几个意思？</p><p>轮询是最原始的实现实时Web应用的解决方案。轮询技术要求客户端以设定的时间间隔周期性地向服务端发送请求，频繁地查询是否有新的数据改动。明显地，这种方法会导致过多不必要的请求，浪费流量和服务器资源。总之就是一种low到爆炸的原始作坊水平的技术。</p><p>本文通过基于dwebsocket库来将socket嵌入到django服务中，使其服务兼具http协议和socket协议，能够达到实时前后端通信，后端主动推送等功能</p><p>安装dwebsocket库</p><pre><code class="shell">pip install -i https://pypi.tuna.tsinghua.edu.cn/simple dwebsocket</code></pre><p>定义视图文件的逻辑views.py</p><pre><code class="python">#导入websocket装饰器from dwebsocket.decorators import accept_websocket#接收前端信息@accept_websocketdef test_socket(request):    if request.is_websocket():        for message in request.websocket:            c=str(message,encoding=&#39;utf-8&#39;)            print(c)            request.websocket.send(message)#主动推送消息@accept_websocketdef test_websocket(request):    if request.is_websocket():        while 1:            time.sleep(1) ## 向前端发送时间            dit = &#123;                &#39;time&#39;:time.strftime(&#39;%Y.%m.%d %H:%M:%S&#39;,time.localtime(time.time()))            &#125;            request.websocket.send(json.dumps(dit))</code></pre><p>路由配置urls.py</p><pre><code class="python">#websocketpath(&#39;socket_test&#39;,TemplateView.as_view(template_name=&#39;md_admin/socket.html&#39;)),path(&#39;websocket_test&#39;,TemplateView.as_view(template_name=&#39;md_admin/socket_push.html&#39;)),path(&#39;test_socket&#39;,test_socket),path(&#39;test_websocket&#39;,test_websocket),</code></pre><p>定义前端发送消息的页面 socket.html</p><pre><code class="html">&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;    &lt;meta charset=&quot;utf-8&quot;/&gt;    &lt;title&gt;Chat Room&lt;/title&gt;&lt;/head&gt;&lt;body&gt;    &lt;input id=&quot;chat-message-input&quot; type=&quot;text&quot; size=&quot;100&quot;/&gt;&lt;br/&gt;    &lt;input id=&quot;chat-message-submit&quot; type=&quot;button&quot; value=&quot;Send&quot; onclick=&#39;sendmessage()&#39;/&gt;&lt;/body&gt;&lt;script&gt;   //生成socket对象   var socket = new WebSocket(&quot;ws:&quot; + window.location.host + &quot;/md_admin/test_socket&quot;);            socket.onopen = function () &#123;                console.log(&#39;WebSocket open&#39;);//成功连接上Websocket            &#125;;            socket.onmessage = function (e) &#123;                console.log(&#39;message: &#39; + e.data);//打印服务端返回的数据            &#125;;            socket.onclose=function(e)&#123;              console.log(e);              socket.close(); //关闭TCP连接            &#125;;            if (socket.readyState == WebSocket.OPEN)&#123;            socket.onopen();            &#125;            window.s = socket;function sendmessage()&#123;    window.s.send(document.getElementById(&quot;chat-message-input&quot;).value);&#125;&lt;/script&gt;&lt;/html&gt;</code></pre><p>然后再定义一个页面，测试后台的主动推送socket_push.html</p><pre><code class="html">&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;    &lt;meta charset=&quot;utf-8&quot;/&gt;    &lt;title&gt;Chat Room&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;script&gt;   //生成socket对象   var socket = new WebSocket(&quot;ws:&quot; + window.location.host + &quot;/md_admin/test_websocket&quot;);            socket.onopen = function () &#123;                console.log(&#39;WebSocket open&#39;);//成功连接上Websocket            &#125;;            socket.onmessage = function (e) &#123;                console.log(&#39;message: &#39; + e.data);//打印服务端返回的数据            &#125;;            socket.onclose=function(e)&#123;              console.log(e);              socket.close(); //关闭TCP连接            &#125;;            if (socket.readyState == WebSocket.OPEN)&#123;            socket.onopen();            &#125;&lt;/script&gt;&lt;/html&gt;</code></pre><p>可以看到，前后端无论是前端发送消息，还是后端主动推送消息，全部基于websocket，实现了真正意义上的实时通信，另外基于dwebsocket的聊天室可以在这里下载源码</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>一个sql查询排序小技巧</title>
+      <link href="2019/04/21/Ssql-one/"/>
+      <url>2019/04/21/Ssql-one/</url>
+      
+        <content type="html"><![CDATA[<pre><code class="sql">SELECT CASE WHEN (num = 0) THEN &#39;0&#39; WHEN (age &gt; 0 AND age &lt;= 10) THEN &#39;10&#39;WHEN (age &gt; 100 AND age &lt;=200) THEN &#39;100&#39; ELSE &#39;&gt;200&#39; END as num</code></pre><p> 这样的情况，如果用别名排序的话，数据库字符串排序会变成乱序，导致难以浏览，所以可以在别名上加前缀<br>，这样就可以通过首字母排序了，比如:</p><pre><code class="sql">SELECT CASE WHEN (num = 0) THEN &#39;a. 0&#39; WHEN (age &gt; 0 AND age &lt;= 10) THEN &#39;b. 10&#39;WHEN (age &gt; 100 AND age &lt;=200) THEN &#39;c. 100&#39; ELSE &#39;d. &gt;200&#39; END as num</code></pre><p>这样select出来的数据就会按照你设想的方式排序了</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>在vscode中为Django配置专属的语法检测提醒，防止误报语法错误</title>
+      <link href="2019/04/16/Sid_19_03/"/>
+      <url>2019/04/16/Sid_19_03/</url>
+      
+        <content type="html"><![CDATA[<p>Python官网（<a href="https://www.python.org/dev/peps/pep-0008/%EF%BC%89">https://www.python.org/dev/peps/pep-0008/）</a><br>专门有版块介绍推荐的python代码习惯，比如类，函数等的命名规则，遵守这些规则可以使自己的代码更加简明和易读。</p><p>然而pylint在面对django框架时表现的有些不足，因为django使用了大量的元编程(metaprograming)思想以及鸭子模型，以至于在程序运行时会修改不少对象的属性和行为，但是这样给pylint这样的语法检测程序带来了比较大的困难。典型的就是集成了django.db.models.Model的模型层对象在编译时没有objects属性，但是运行时却有，造成我们在编写代码时pylint会报”has no objects attributes”之类的错误，虽然不影响程序运行，但是很影响代码的阅读性。所以有人专门开发了pylint的插件pylint-django</p><p>这里简单介绍一下如何使用pylint-django来规避一些错误的误报</p><p>首先安装pylint以及pylint-django</p><pre><code class="shell">pip install pylint pylint_django</code></pre><p>然后在vscode的配置文件(settings.json)中加上如下配置</p><pre><code class="shell">&quot;python.linting.pylintArgs&quot;: [        &quot;--load-plugins&quot;,        &quot;pylint_django&quot;,        &quot;--errors-only&quot;    ]</code></pre>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>python3.7.2+Django2.0.4 使用django-celery遇到问题</title>
+      <link href="2019/03/20/Sid-19-02/"/>
+      <url>2019/03/20/Sid-19-02/</url>
+      
+        <content type="html"><![CDATA[<h4 id="1-首先为啥要用celery"><a href="#1-首先为啥要用celery" class="headerlink" title="1) 首先为啥要用celery"></a>1) 首先为啥要用celery</h4><p>因为在Django Web平台开发中，碰到一些请求执行的任务时间较长（几分钟），为了加快用户的响应时间，因此决定采用异步任务的方式在后台执行这些任务。与此同时，celery除了异步任务，还可以开启定时任务，方便调度。</p><h4 id="2-安装需要的软件包"><a href="#2-安装需要的软件包" class="headerlink" title="2) 安装需要的软件包"></a>2) 安装需要的软件包</h4><pre><code class="shell">pip install celerypip install celery-with-redispip install django-celery</code></pre><h4 id="3-因为async这个单词在python3-7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于："><a href="#3-因为async这个单词在python3-7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于：" class="headerlink" title="3) 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于："></a>3) 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于：</h4><pre><code class="shell">/kombu/async/celery/utils/timer2.py/concurrency/asynpool.py/kombu/transport/redis.py/celery/worker/auto_scale.py,components,consumer,strategy</code></pre><h4 id="4-配置settings-py"><a href="#4-配置settings-py" class="headerlink" title="4) 配置settings.py"></a>4) 配置settings.py</h4><pre><code class="python">INSTALLED_APPS = (   ...   &#39;djcelery&#39;,  &#125;# 末尾初始化import djcelerydjcelery.setup_loader()BROKER_URL = &#39;redis://127.0.0.1:6379/0&#39;CELERY_IMPORTS = (&#39;应用名称.task&#39;)</code></pre><h4 id="5-新增task-py"><a href="#5-新增task-py" class="headerlink" title="5) 新增task.py"></a>5) 新增task.py</h4><pre><code class="python">#导入异步任务from celery.task import task#导入定时任务库from celery.decorators import periodic_task  #利用参数来设置任务周期@periodic_task(run_every=10)def some_task():    print(&#39;每10秒执行一次&#39;)    time.sleep(5)    print(&#39;执行完毕&#39;)    return True#通过装饰器来注册异步任务@taskdef task_mail():    #实例化一个对象    sendmail = SendMail(&#39;欢迎注册&#39;,&#39;您的验证码是1324&#39;,   [&#39;2910293685@qq.com&#39;],DEFAULT_FROM_EMAIL)    status = sendmail.do_send_mail()    if status:        print(&#39;发送邮件成功&#39;)    else:        print(&#39;发送邮件失败&#39;)</code></pre><h4 id="6-新增celery-py"><a href="#6-新增celery-py" class="headerlink" title="6) 新增celery.py"></a>6) 新增celery.py</h4><pre><code class="python">import osimport djangofrom celery import Celeryfrom django.conf import settings os.environ.setdefault(&#39;DJANGO_SETTINGS_MODULE&#39;, &#39;mymac.settings&#39;)django.setup()app = Celery(&#39;mymac&#39;)app.config_from_object(&#39;django.conf:settings&#39;)app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)@app.task(bind=True)def debug_task(self):    print(&#39;Request: &#123;0!r&#125;&#39;.format(self.request))</code></pre><h4 id="7-启动服务"><a href="#7-启动服务" class="headerlink" title="7) 启动服务"></a>7) 启动服务</h4><pre><code class="shell">#异步服务celery -A mymac worker -l info  #定时任务服务celery -A myproject beat -l info</code></pre><h4 id="8-但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2-6-10"><a href="#8-但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2-6-10" class="headerlink" title="8) 但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2.6.10"></a>8) 但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2.6.10</h4><pre><code class="shell">pip uninstall redispip install redis==2.6.10</code></pre>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>mac系统中进入mysql遇到Access denied for user &#39;root&#39;@&#39;localhost&#39;</title>
+      <link href="2019/03/20/Ssql-err/"/>
+      <url>2019/03/20/Ssql-err/</url>
+      
+        <content type="html"><![CDATA[<h4 id="Access-denied-for-user-‘root’-’localhost’-using-password-YES"><a href="#Access-denied-for-user-‘root’-’localhost’-using-password-YES" class="headerlink" title="Access denied for user ‘root’@’localhost’ (using password: YES)"></a>Access denied for user ‘root’@’localhost’ (using password: YES)</h4><p>1)Stop mysql (Kill mysql process or run following command) 停止mysql服务</p><pre><code class="shell">sudo /usr/local/mysql/support-files/mysql.server stop</code></pre><ol start="2"><li>Start it in safe mode 用安全模式进入mysql 这一步可以看成是不输入密码就进入mysql命令行</li></ol><pre><code class="shell">sudo mysqld_safe --skip-grant-tables</code></pre><ol start="3"><li>Open another terminal and run the following command (Keep last terminal open) 在另一个窗口中进入mysql</li></ol><pre><code class="shell">mysql -u root</code></pre><ol start="4"><li>Run the following command with suitable new password on the mysql console 修改密码</li></ol><pre><code class="mysql">UPDATE mysql.user SET Password=PASSWORD(&#39;password&#39;) WHERE User=&#39;root&#39;;</code></pre><ol start="5"><li>刷新一下缓存<pre><code class="mysql">FLUSH PRIVILEGES; </code></pre></li></ol>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>flask SQLAlchemy 的安装和基础应用</title>
+      <link href="2018/12/23/Sflas-two/"/>
+      <url>2018/12/23/Sflas-two/</url>
+      
+        <content type="html"><![CDATA[<p>SQLAlchemy是一个基于Python实现的ORM框架。该框架建立在 DB API之上，使用关系对象映射进行数据库操作，简言之便是：将类和对象转换成SQL，然后使用数据API执行SQL并获取执行结果。</p><p>安装命令</p><pre><code>pip install flask-sqlalchemy</code></pre><p>注意sqlalchemy 依赖于 pymysql 模块，确保pymysql 被正确安装</p><pre><code class="shell">pip install pymysql</code></pre><p>#建立对象</p><pre><code class="python">#导入第三方连接库sql点金术from flask_sqlalchemy import SQLAlchemy#建立对象app = Flask(__name__)#载入配置文件app.config.from_pyfile(&#39;config.ini&#39;)# #指定数据库连接还有库名# app.config[&#39;SQLALCHEMY_DATABASE_URI&#39;] = &#39;mysql+pymysql://root:123456@127.0.0.1:3306/myflask?charset=utf8&#39;#指定配置，用来省略提交操作#app.config[&#39;SQLALCHEMY_COMMIT_ON_TEARDOWN&#39;] = True#建立数据库对象db = SQLAlchemy(app) #建立数据库类，用来映射数据库表,将数据库的模型作为参数传入class User(db.Model):    #声明表名    __tablename__ = &#39;user&#39;    #建立字段函数    id = db.Column(db.Integer,primary_key=True)    name = db.Column(db.String(200))    password = db.Column(db.String(200))</code></pre>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Flask 在虚拟环境之中做开发</title>
+      <link href="2018/12/17/Sflask-one/"/>
+      <url>2018/12/17/Sflask-one/</url>
+      
+        <content type="html"><![CDATA[<p>虚拟环境安装命令</p><pre><code class="shell">pip install virtualenv</code></pre><p>进入项目安装虚拟目录的命令</p><pre><code class="shell">virtualenv venv</code></pre><p>激活虚拟环境</p><pre><code class="shell">activate</code></pre><p>离开虚拟环境</p><pre><code class="shell">deactivate</code></pre>]]></content>
+      
+      
       
     </entry>
     

@@ -6,7 +6,7 @@
   <link href="https://glovelei.github.io/atom.xml" rel="self"/>
   
   <link href="https://glovelei.github.io/"/>
-  <updated>2023-03-06T08:45:39.300Z</updated>
+  <updated>2023-03-08T10:07:11.515Z</updated>
   <id>https://glovelei.github.io/</id>
   
   <author>
@@ -15,6 +15,70 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>OpenAi</title>
+    <link href="https://glovelei.github.io/2023/03/02/SOpenAi/"/>
+    <id>https://glovelei.github.io/2023/03/02/SOpenAi/</id>
+    <published>2023-03-02T09:43:53.000Z</published>
+    <updated>2023-03-08T10:07:11.515Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/images/openai.jpg" alt="cover"></p><h2 id="OpenAI库的SDK方式接入"><a href="#OpenAI库的SDK方式接入" class="headerlink" title="OpenAI库的SDK方式接入"></a>OpenAI库的SDK方式接入</h2><p>OpenAI官方同步更新了接口Api的三方库openai，版本为0.27.0，如果要使用新的模型gpt-3.5-turbo，就必须同步安装最新版本：</p><pre><code>pip3 install openai==0.27.0</code></pre><p>随后建立chat.py文件：</p><pre><code class="python">import openaiopenai.api_key = &quot;openai的接口apikey&quot; completion = openai.ChatCompletion.create(  model=&quot;gpt-3.5-turbo&quot;,   messages=[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;北国风光，千里冰封，万里雪飘，请接着续写，使用沁园春的词牌&quot;&#125;])print(completion[&quot;choices&quot;][0][&quot;message&quot;][&quot;content&quot;])</code></pre><p>程序返回：</p><pre><code class="text">瑶池冰缘，雪舞凄美， 隔窗寒意，似乎钻进衣袖。寒塘渡鸭，雪中梅影， 孤独是一片银白的姿态。冰雪如花，开放在草莓园里， 可爱的雪人，瑟瑟发抖着欢呼。北风凛冽，寒暄难挡， 四季明媚，但冬日尤甜美。千里冰封，万里雪飘， 窗外天下壮观，此时正是京城美。</code></pre><p>闪电般秒回，让用惯了ChatGPT网页端的我们几乎不能适应。</p><p>gpt-3.5-turbo，对得起turbo的加成，带涡轮的ChatGPT就是不一样。</p><h2 id="ChatGPT聊天上下文"><a href="#ChatGPT聊天上下文" class="headerlink" title="ChatGPT聊天上下文"></a>ChatGPT聊天上下文</h2><p>我们知道ChatGPT的最大特色就是可以联系语境中的上下文，换句话说，ChatGPT可以根据之前的回答来优化之后的回答，形成上下文关系，让人机对话更加连贯和富有逻辑性。</p><p>这里取决于输入参数中的role参数，每一个role的取值，对应的场景不一样，其中system用于在对话开始时给ChatGPT一个指示或声明，有点像引导词，使得后续的回答更具有个性化和专业化。user是用于给用户提问的或者说是用来给用户输入引导词的。assistant顾名思义，是用于输入ChatGPT的回答内容:</p><pre><code class="python">import openaiopenai.api_key = &quot;apikey&quot; class ChatGPT:    def __init__(self,chat_list=[]) -&gt; None:        # 初始化对话列表        self.chat_list = []    # 显示接口返回    def show_conversation(self,msg_list):        for msg in msg_list:            if msg[&#39;role&#39;] == &#39;user&#39;:                print(f&quot;Me: &#123;msg[&#39;content&#39;]&#125;\n&quot;)            else:                print(f&quot;ChatGPT: &#123;msg[&#39;content&#39;]&#125;\n&quot;)    # 提示chatgpt    def ask(self,prompt):        self.chat_list.append(&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:prompt&#125;)        response = openai.ChatCompletion.create(model=&quot;gpt-3.5-turbo&quot;,messages=self.chat_list)        answer = response.choices[0].message[&#39;content&#39;]        # 添加历史对话，形成上下文关系        self.chat_list.append(&#123;&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:answer&#125;)        self.show_conversation(self.chat_list)</code></pre><p>这里每一次会话都会加入chat_list的聊天列表，角色为assistant，为了让ChatGPT分析上下文，下面开始测试：</p><pre><code class="python">if __name__ == &#39;__main__&#39;:    chat = ChatGPT()    chat.ask(&quot;你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光&quot;)</code></pre><p>程序返回：</p><pre><code class="text">Me: 你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光ChatGPT: 北国春光，清冽宜人。望眼欲穿的远山如翠起伏，遥远而缥缈。层层叠叠的林木，新绿徜徉，婆娑摇曳。风儿吹起，沁人心脾，点点梅花飘至，宛如仙境。花间蝶恋，春色满园。莺莺燕燕，鸟鸣花落，时时惹人遐思。碧空万里，蓝天白云，彩云飘飘，缤纷夺目。柳絮飘飘，轻羽翩翩，小河潺潺，流水声声，婉转动人。清风拂面，落英缤纷。听着草虫唱起，充满阳光的气息，轻轻飘荡，仿佛一条无形的小河，展开春天的美好，留下美好的记忆。人间万象，却只有这春色无边，似乎奔向远方的快乐。</code></pre><p>此时再次发问：</p><pre><code class="python">chat.ask(&quot;请使用另外一种粗狂阳刚的风格再写一遍上面的词&quot;)</code></pre><p>程序返回：</p><pre><code class="text">Me: 请使用另外一种粗狂阳刚的风格再写一遍上面的词ChatGPT: 北国春光，不柔不媚，金色的阳光照在地上，充满了男子气概。草原上风吹不断，那些疯狂的野花，在春风中舞蹈。看！那些猛禽静静地盘旋在高空，监视着整片草原，威武雄壮。花丛间，一只雄性蜂鹰跃跃欲飞，看上去仿佛要冲破天际。这里的春天有时带着风沙，但这并不能阻止狂放豪迈的草原奔腾前行，而这样的北国春光，怎会轻易被遗忘！</code></pre><p>虽然内容有些尬，但确实联系了上下文。</p><p>需要注意的是，token不仅计算ChatGPT的接口返回内容，也会计算用户的发送内容，token的计算方法不是简单的一词一个，例如中文输入，一个中文汉字占2个字节数，而对于一次中文测试中，50个汉字被算为100个tokens，差不多是英文的一倍，而token还计算api发送中的角色字段，如果像上文一样实现上下文操作，就必须发送ChatGPT接口返回的历史聊天列表，这意味着ChatGPT上下文聊天的成本并不是我们想象中的那么低，需要谨慎使用。</p><h2 id="原生ChatGPT接口异步访问"><a href="#原生ChatGPT接口异步访问" class="headerlink" title="原生ChatGPT接口异步访问"></a>原生ChatGPT接口异步访问</h2><p>除了官方的SDK，新接口模型也支持原生的Http请求方式，比如使用requests库：</p><pre><code class="text">pip3 install requests</code></pre><p>直接请求openai官方接口：</p><pre><code class="python">import requestsh = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: &#39;Bearer apikey&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;r = requests.post(url=u, headers=h, json=d).json()print(r)</code></pre><p>程序返回：</p><pre><code class="json">&#123;&#39;id&#39;: &#39;chatcmpl-6qDNQ9O4hZPDT1Ju902coxypjO0mY&#39;, &#39;object&#39;: &#39;chat.completion&#39;, &#39;created&#39;: 1677902496, &#39;model&#39;: &#39;gpt-3.5-turbo-0301&#39;, &#39;usage&#39;: &#123;&#39;prompt_tokens&#39;: 20, &#39;completion_tokens&#39;: 100, &#39;total_tokens&#39;: 120&#125;, &#39;choices&#39;: [&#123;&#39;message&#39;: &#123;&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;\n\n同步请求和异步请求是指在客户端向服务器发送请求时，客户端等待服务器响应的方式不同。\n\n同步请求是指客户端发送请求后，必须等待服务器响应后才能继续执行后续的代码。在等待服务器响应的过程中，客户端的界面会被阻塞，用户无法进行&#39;&#125;, &#39;finish_reason&#39;: &#39;length&#39;, &#39;index&#39;: 0&#125;]&#125;</code></pre><p>ChatGPT原生接口也支持异步方式请求，这里使用httpx:</p><pre><code class="text">pip3 install httpx</code></pre><p>编写异步请求：</p><pre><code class="python">h = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: &#39;Bearer apikey&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;import asyncioimport httpxasync def main():    async with httpx.AsyncClient() as client:        resp = await client.post(url=u, headers=h, json=d)        result = resp.json()        print(result)asyncio.run(main())</code></pre><p>程序返回:</p><pre><code class="json">&#123;&#39;id&#39;: &#39;chatcmpl-6qDNQ9O4hZPDT1Ju902coxypjO0mY&#39;, &#39;object&#39;: &#39;chat.completion&#39;, &#39;created&#39;: 1677902496, &#39;model&#39;: &#39;gpt-3.5-turbo-0301&#39;, &#39;usage&#39;: &#123;&#39;prompt_tokens&#39;: 20, &#39;completion_tokens&#39;: 100, &#39;total_tokens&#39;: 120&#125;, &#39;choices&#39;: [&#123;&#39;message&#39;: &#123;&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;\n\n同步请求和异步请求是指在客户端向服务器发送请求时，客户端等待服务器响应的方式不同。\n\n同步请求是指客户端发送请求后，必须等待服务器响应后才能继续执行后续的代码。在等待服务器响应的过程中，客户端的界面会被阻塞，用户无法进行&#39;&#125;, &#39;finish_reason&#39;: &#39;length&#39;, &#39;index&#39;: 0&#125;]&#125;</code></pre><p>我们也可以将异步请求方式封装到对话类中，完整代码：</p><pre><code class="python">import openaiimport asyncioimport httpxopenai.api_key = &quot;apikey&quot; h = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: f&#39;Bearer &#123;openai.api_key&#125;&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;class ChatGPT:    def __init__(self,chat_list=[]) -&gt; None:        # 初始化对话列表        self.chat_list = []    # 异步访问    async def ask_async(self,prompt):        d[&quot;messages&quot;][0][&quot;content&quot;] = prompt        async with httpx.AsyncClient() as client:            resp = await client.post(url=u, headers=h, json=d)            result = resp.json()            print(result)    # 显示接口返回    def show_conversation(self,msg_list):        for msg in msg_list:            if msg[&#39;role&#39;] == &#39;user&#39;:                print(f&quot;Me: &#123;msg[&#39;content&#39;]&#125;\n&quot;)            else:                print(f&quot;ChatGPT: &#123;msg[&#39;content&#39;]&#125;\n&quot;)    # 提示chatgpt    def ask(self,prompt):        self.chat_list.append(&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:prompt&#125;)        response = openai.ChatCompletion.create(model=&quot;gpt-3.5-turbo&quot;,messages=self.chat_list)        answer = response.choices[0].message[&#39;content&#39;]        # 添加历史对话，形成上下文关系        self.chat_list.append(&#123;&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:answer&#125;)        self.show_conversation(self.chat_list)if __name__ == &#39;__main__&#39;:    chat = ChatGPT()    chat.ask(&quot;你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光&quot;)    chat.ask(&quot;请使用另外一种粗狂阳刚的风格再写一遍上面的词&quot;)    asyncio.run(chat.ask_async(&quot;请解释同步请求接口和异步请求接口的区别&quot;))</code></pre><h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>低成本ChatGPT接口模型gpt-3.5-turbo更容易接入三方的客户端，比如微信、QQ、钉钉群之类，比起ChatGPT网页端，ChatGPT接口的响应速度更加迅速且稳定，ChatGPT，永远的神，没有之一，且不可替代，最后奉上异步上下文封装项目，与君共觞：github.com/zcxey2911/chatgpt_api_Contextual_async</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;/images/openai.jpg&quot; alt=&quot;cover&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;OpenAI库的SDK方式接入&quot;&gt;&lt;a href=&quot;#OpenAI库的SDK方式接入&quot; class=&quot;headerlink&quot; title=&quot;OpenAI库的SDK方</summary>
+      
+    
+    
+    
+    
+    <category term="OpenAI库的SDK方式接入" scheme="https://glovelei.github.io/tags/OpenAI%E5%BA%93%E7%9A%84SDK%E6%96%B9%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>GoLang的Hugo配合nginx来打造属于自己的纯静态博客系统</title>
+    <link href="https://glovelei.github.io/2022/05/23/Sid-22-05/"/>
+    <id>https://glovelei.github.io/2022/05/23/Sid-22-05/</id>
+    <published>2022-05-23T01:49:24.000Z</published>
+    <updated>2023-03-09T14:50:36.856Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/images/goblog.png" alt="cover"><br>Go lang无疑是目前的当红炸子鸡，极大地提高了后端编程的效率，同时有着极高的性能。借助Go语言我们 可以用同步的方式写出高并发的服务端软件，同时，Go语言也是云原生第一语言，Docker，Kubernetes等等著名的项目都是使用Go语言实现的。</p><p>Hugo 是基于 Go 语言的静态网站生成器。</p><p>什么是静态网站生成器？顾名思义，就是以最快的速度生成一个高可用的web页面，我们知道Django作为一款非常流行的框架被广泛应用，但是部署起来实在是太麻烦了，各种命令各种配置，动态页面必然要涉及数据库的配置和操作，另外只要涉及数据库操作，你就不得不考虑sql注入等一系列的安全因素。而纯静态页面则没有这个烦恼，如果我们只需要一个简单的站点，一些简单的功能和页面，比如博客，我们只想以极简的方式用markdown语法写下文字或者代码，让服务器访问纯静态页面，这就是静态网站生成器可以提供给我们的好处。</p><p>为啥选择Hugo?</p><p>Hugo是一种go语言编写的静态网站生成器。适用于搭建个人blog、公司主页、help等网站，是一种小型的CMS系统。静态站点的好处就是快速、安全、易于部署，方便管理。</p><p>Hugo的优点包含但不限于：</p><pre><code>世界上最快的静态网站生成工具，5秒生成6000个页面文档为Markdown格式,语法超简单Hugo 可以做静态文件生成工具，还是高性能web 服务；丰富的站点迁移工具，可以将wordpress，Ghost，Jekyll，DokuWiki，Blogger轻松迁移至 Hugo超详细的文档活跃的社区更加自由的内容组织方式丰富的主题模板，可以让你的网站更加炫目多彩</code></pre><p>多环境支持：macos ，linux，windows</p><p>首先，可以去go的官网网站下载安装包  <a href="https://golang.org/dl/">https://golang.org/dl/</a> 然后直接双击安装即可，不需要配置环境变量，因为安装过程自动配置，安装完毕后，打开命令行，输入</p><pre><code class="shell">go version</code></pre><p>显示主版本号即表示安装成功</p><p>然后，可以进行hugo的在线源码编译安装，打开命令行，输入下面的命令</p><pre><code class="shell">go get -u -v github.com/spf13/hugogo build -o hugo main.gomv hugo $GOPATH/bin</code></pre><p>如果你不想在线编译安装，也可以去hugo的官网 <a href="https://github.com/gohugoio/hugo/releases">https://github.com/gohugoio/hugo/releases</a> 下载稳定版的压缩包，解压之后配置一下环境变量也可以</p><p>装完以后，在命令行内输入</p><pre><code class="shell">hugo version</code></pre><p>打印出版本号即表示hugo安装成功</p><p>在命令行中输入命令</p><pre><code class="shell">hugo new site hugo_blog</code></pre><p>就生成了一个名字为hugo_blog的新站点，可以感受到速度非常快，和vue.js创建新站点的速度比起来简直天差地别</p><p>打开配置文件config.toml，这是hugo的站点的相关配置，可以进行一些个性化的定制，改为下面这样：</p><pre><code class="python">baseURL = &quot;/&quot;languageCode = &quot;en-us&quot;title = &quot;我的博客&quot;#指定主题theme = &quot;hyde&quot;[params]#博客简介description = &quot;这里是刘悦的个人博客&quot;#博客主题颜色themeColor = &quot;theme-base-08&quot;</code></pre><p>可以看到我们制定了一个主题hyde，添加了Theme后的站点才有血有肉，丰富多彩。</p><p>更多的主题可以在这个上面下载，都是免费而开源的：<a href="https://themes.gohugo.io/">https://themes.gohugo.io/</a></p><p>进入到站点内的themes目录，输入命令下载hyde主题，hugo有很多漂亮的主题可以选择</p><pre><code class="shell">git clone https://github.com/spf13/hyde.git</code></pre><p>结构和样式有了，我们还没有内容。我们来创建站点的第一篇文章</p><p>输入命令</p><pre><code class="shell">hugo new one.md</code></pre><p>hugo在content下创建one.md文件，我们编写一些文件内容：</p><pre><code class="markdown">---date: &quot;2019-05-23&quot;title: &quot;第一篇文章&quot;---### 你好啊123123123print(&#39;hello world&#39;)</code></pre><p>然后在命令行中输入</p><pre><code class="shell">hugo server</code></pre><p>然后访问本地：1313 端口</p><p>至此，非常快速而简单博客已经做好了，那么如何部署到线上呢？非常简单输入命令进行打包操作：</p><pre><code class="shell">hugo --baseUrl=&quot;/&quot;</code></pre><p>hugo就会把你的站点生成纯静态页面，然后打包到public文件夹</p><p>将public上传到阿里云服务器的root目录下</p><p>修改nginx配置文件</p><pre><code class="shell">vim /etc/nginx/conf.d/default.conf</code></pre><p>监听80端口，并且项目目录指定/root/public</p><pre><code class="shell">server &#123;    listen       80;    server_name  localhost;    access_log      /root/md_vue_access.log;    error_log       /root/md_vue_error.log;    client_max_body_size 75M;    location / &#123;        root /root/public;        index index.html;    &#125;    error_log    /root/md_vue/error.log    error;&#125;</code></pre><p>重启nginx systemctl restart nginx.service 然后访问博客就搭建好了</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;/images/goblog.png&quot; alt=&quot;cover&quot;&gt;&lt;br&gt;Go lang无疑是目前的当红炸子鸡，极大地提高了后端编程的效率，同时有着极高的性能。借助Go语言我们 可以用同步的方式写出高并发的服务端软件，同时，Go语言也是云原生第一语言，Do</summary>
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Centos7.6上面部署基于redis的分布式爬虫scrapy-redis</title>
+    <link href="https://glovelei.github.io/2022/04/22/Sid-22-04/"/>
+    <id>https://glovelei.github.io/2022/04/22/Sid-22-04/</id>
+    <published>2022-04-22T01:49:24.000Z</published>
+    <updated>2023-03-09T15:27:31.558Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/images/scrapy.png" alt="cover"></p><p>Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。</p><p>而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。</p><p><img src="/images/scrapy_01.jpeg"> </p><p>说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬</p><p>首先分别在主机和从机上安装需要的爬虫库</p><pre><code class="shell">pip3 install requests scrapy scrapy-redis redis</code></pre><p>在主机中安装redis</p><pre><code class="shell">#安装redisyum install redis启动服务systemctl start redis查看版本号redis-cli --version设置开机启动systemctl enable redis.service</code></pre><p>修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口</p><pre><code class="shell">#bind 127.0.0.1protected-mode no</code></pre><p>改完配置后，别忘了重启服务才能生效</p><pre><code class="shell">systemctl restart redis</code></pre><p>然后分别新建爬虫项目</p><pre><code class="shell">scrapy startproject myspider</code></pre><p>在项目的spiders目录下新建test.py</p><pre><code class="python">#导包import scrapyimport osfrom scrapy_redis.spiders import RedisSpider#定义抓取类#class Test(scrapy.Spider):class Test(RedisSpider):    #定义爬虫名称，和命令行运行时的名称吻合    name = &quot;test&quot;    #定义redis的key    redis_key = &#39;test:start_urls&#39;    #定义头部信息    haders = &#123;        &#39;User-Agent&#39;: &#39;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36&#39;    &#125;    def parse(self, response):        print(response.url)        pass</code></pre><p>然后修改配置文件settings.py，增加下面的配置,其中redis地址就是在主机中配置好的redis地址:</p><pre><code class="python">BOT_NAME = &#39;myspider&#39;SPIDER_MODULES = [&#39;myspider.spiders&#39;]NEWSPIDER_MODULE = &#39;myspider.spiders&#39;#设置中文编码FEED_EXPORT_ENCODING = &#39;utf-8&#39;# scrapy-redis 主机地址REDIS_URL = &#39;redis://root@39.106.228.179:6379&#39;#队列调度SCHEDULER = &quot;scrapy_redis.scheduler.Scheduler&quot;#不清除缓存SCHEDULER_PERSIST = True#通过redis去重DUPEFILTER_CLASS = &quot;scrapy_redis.dupefilter.RFPDupeFilter&quot;#不遵循robotsROBOTSTXT_OBEY = False</code></pre><p>最后，可以在两台主机上分别启动scrapy服务</p><pre><code class="shell">scrapy crawl test</code></pre><p>此时，服务已经起来了，只不过redis队列中没有任务，在等待状态</p><p>进入主机的redis</p><pre><code class="shell">redis-cli</code></pre><p>将任务队列push进redis</p><pre><code class="shell">lpush test:start_urls http://baidu.comlpush test:start_urls http://chouti.com</code></pre><p>两台服务器的爬虫服务分别领取了队列中的任务进行抓取，同时利用redis的特性，url不会重复抓取</p><p>爬取任务结束之后，可以通过flushdb命令来清除地址指纹，这样就可以再次抓取历史地址了。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;/images/scrapy.png&quot; alt=&quot;cover&quot;&gt;&lt;/p&gt;
+&lt;p&gt;Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了</summary>
+      
+    
+    
+    
+    
+  </entry>
   
   <entry>
     <title>工单项目</title>
@@ -419,27 +483,23 @@
   </entry>
   
   <entry>
-    <title>异步及异步消费</title>
-    <link href="https://glovelei.github.io/2018/02/12/S%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9/"/>
-    <id>https://glovelei.github.io/2018/02/12/S%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9/</id>
-    <published>2018-02-11T16:00:00.000Z</published>
-    <updated>2023-03-06T08:45:39.300Z</updated>
+    <title>Centos上配置nginx+uwsgi+负载均衡配置</title>
+    <link href="https://glovelei.github.io/2020/05/21/Sid-20-05/"/>
+    <id>https://glovelei.github.io/2020/05/21/Sid-20-05/</id>
+    <published>2020-05-21T01:49:24.000Z</published>
+    <updated>2023-03-09T14:39:52.463Z</updated>
     
-    <content type="html"><![CDATA[<p><img src="/images/lake.png" alt="cover"></p><h3 id="一、asyncio"><a href="#一、asyncio" class="headerlink" title="一、asyncio"></a>一、asyncio</h3><p>同步代码:</p><pre><code class="js">import timedef hello():    time.sleep(1)def run():    for i in range(5):        hello()        print(&#39;Hello World:%s&#39; % time.time())  if __name__ == &#39;__main__&#39;:    run()</code></pre><p>输出：</p><pre><code class="js">Hello World:1527595175Hello World:1527595176Hello World:1527595177Hello World:1527595178Hello World:1527595179</code></pre><p>异步代码:</p><pre><code class="js">import timeimport asyncio# 定义异步函数async def hello():    asyncio.sleep(1)    print(&#39;Hello World:%s&#39; % time.time())def run():    for i in range(5):        loop.run_until_complete(hello())loop = asyncio.get_event_loop()if __name__ ==&#39;__main__&#39;:    run()</code></pre><p>输出:</p><pre><code class="js">Hello World:1527595104Hello World:1527595104Hello World:1527595104Hello World:1527595104Hello World:1527595104</code></pre><p>async def 用来定义异步函数，其内部有异步操作。每个线程有一个事件循环，主线程调用asyncio.get_event_loop()时会创建事件循环，你需要把异步的任务丢给这个循环的run_until_complete()方法，事件循环会安排协同程序的执行。</p><h3 id="二、控制任务"><a href="#二、控制任务" class="headerlink" title="二、控制任务"></a>二、控制任务</h3><p>通过asyncio.wait()可以控制多任务</p><p>asyncio.wait()是一个协程，不会阻塞，立即返回，返回的是协程对象。传入的参数是future或协程构成的可迭代对象。最后将返回值传给run_until_complete()加入事件循环</p><pre><code class="js">import asyncioasync def coroutine_example(name):    print(&#39;正在执行:&#39;, name)    await asyncio.sleep(1)    print(&#39;执行完毕:&#39;, name)loop = asyncio.get_event_loop()tasks = [coroutine_example(&#39;nb&#39; + str(i)) for i in range(3)]wait_coro = asyncio.wait(tasks)loop.run_until_complete(wait_coro)loop.close()</code></pre><p>输出结果:</p><pre><code class="js">正在执行:nb_1正在执行:nb_0正在执行:nb_2执行完毕:nb_1执行完毕:nb_0执行完毕:nb_2</code></pre>]]></content>
+    <content type="html"><![CDATA[<p>如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。</p><p>申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录</p><p>证书后下载 key、pem后缀文件</p><p>然后打开nginx配置文件</p><pre><code class="shell">vim /etc/nginx/conf.d/default.conf</code></pre><p>同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口</p><pre><code class="shell">server &#123;    listen       80;    server_name  m9u.cn;    #这一步是http重定向到https，也可以不写    rewrite ^(.*)$ https://$&#123;server_name&#125;$1 permanent;    access_log      /root/md_vue_access.log;    error_log       /root/md_vue_error.log;    client_max_body_size 75M;    location / &#123;        root /root/fast_vue;        index index.html;        try_files $uri $uri/ /index.html;    &#125;    error_log    /root/fast_vue/error.log    error;&#125;server &#123;        listen 443;        server_name m9u.cn;        ssl on;        ssl_certificate      /root/2238250_m9u.cn.pem;        ssl_certificate_key  /root/2238250_m9u.cn.key;        ssl_session_timeout 5m;        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;        ssl_prefer_server_ciphers on;        location / &#123;        root /root/fast_vue;        index index.html;        try_files $uri $uri/ /index.html;        &#125;    &#125;</code></pre><p>重启nginx</p><pre><code class="shell">systemctl restart nginx.service</code></pre><p>使用https//访问域名</p>]]></content>
     
     
       
       
-    <summary type="html">&lt;p&gt;&lt;img src=&quot;/images/lake.png&quot; alt=&quot;cover&quot;&gt;&lt;/p&gt;
-&lt;h3 id=&quot;一、asyncio&quot;&gt;&lt;a href=&quot;#一、asyncio&quot; class=&quot;headerlink&quot; title=&quot;一、asyncio&quot;&gt;&lt;/a&gt;一、asyncio&lt;/</summary>
+    <summary type="html">&lt;p&gt;如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。&lt;/p&gt;
+&lt;p&gt;申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将</summary>
       
     
     
     
-    <category term="python" scheme="https://glovelei.github.io/categories/python/"/>
-    
-    
-    <category term="异步消费" scheme="https://glovelei.github.io/tags/%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9/"/>
     
   </entry>
   
