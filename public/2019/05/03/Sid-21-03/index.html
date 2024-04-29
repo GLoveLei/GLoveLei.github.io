@@ -1,0 +1,107 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="
+如果你购买了阿里云、腾讯云或者华为云等国内云服务上的服务器，默认登录都是以密码的方式，这就给潜在的渗透带来了机会，因为当你的linux服务器暴露在外网当中时，服务器就极有可能会遭到互联网上的扫描软件进行扫描，然后试图连接ssh端口进行暴力破解（穷举扫描），如果你不采取相对应的措施，迟早有一天服务器会被渗透者攻陷，这也就解释了为什么google cloud（谷歌云）和aws（亚马逊云）默认都是以秘钥的方式登录服务器。
+基于密钥的安全验证必须为用户自己创建一对密钥（公钥和私钥），并把公钥放在需要访问的服务器上。当需要连接到远程服务器上时，客户端软件就会向服务器发出请求，请求使用私钥进行安全验证。服务器收到请求之后，先在该用户的根目录下寻找公钥，然后把它和发送过来的密钥进行比较。如果两个密钥一致，服务器就用公有.."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile is-hidden"></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/python"><i class="tag post-item-tag">python</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</h1><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><article class="mt-2 post-content"><p><img src="/blogs/images/ssh001.jpeg" alt="cover"></p>
+<p>如果你购买了阿里云、腾讯云或者华为云等国内云服务上的服务器，默认登录都是以密码的方式，这就给潜在的渗透带来了机会，因为当你的linux服务器暴露在外网当中时，服务器就极有可能会遭到互联网上的扫描软件进行扫描，然后试图连接ssh端口进行暴力破解（穷举扫描），如果你不采取相对应的措施，迟早有一天服务器会被渗透者攻陷，这也就解释了为什么google cloud（谷歌云）和aws（亚马逊云）默认都是以秘钥的方式登录服务器。</p>
+<p>基于密钥的安全验证必须为用户自己创建一对密钥（公钥和私钥），并把公钥放在需要访问的服务器上。当需要连接到远程服务器上时，客户端软件就会向服务器发出请求，请求使用私钥进行安全验证。服务器收到请求之后，先在该用户的根目录下寻找公钥，然后把它和发送过来的密钥进行比较。如果两个密钥一致，服务器就用公有的密钥加密“质询”，并把它发送给客户端软件（moba、iTerm）。客户端收到质询之后，就可以用本地的私人密钥解密再把它发送给服务器，这种方式是相当安全的，之前做支付宝支付我们就使用过秘钥的方式来加强支付安全性，详见：在Mac系统下生成新版支付宝（2019年4月）支付接口私钥和公钥。</p>
+<p>本次我们将服务器的登录方式改造成秘钥+密码的形式，提高安全性，这里以Centos7.6为例子。</p>
+<p>首先登录到服务器中，执行命令生成秘钥</p>
+<pre><code>ssh-keygen -t rsa</code></pre>
+<p>返回信息：</p>
+<pre><code>Generating public/private rsa key pair.
+
+Enter file in which to save the key (.ssh/id_rsa): //直接回车，这是秘钥的地址
+
+Enter passphrase (empty for no passphrase):  //输入密钥密码（如果不设置，请直接回车。强烈建议输入1个密码- -）
+
+Enter same passphrase again:  //重复密钥密码</code></pre>
+<p>之后将~/.ssh/id_rsa.pub 复制到 ~/.ssh/authorized_keys,并且赋予权限。</p>
+<pre><code>cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
+
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+<p>随后修改/etc/ssh/sshd_config 文件，将PubkeyAuthentication 后面的值都改成yes ，保存。</p>
+<p>重启sshd服务，让配置生效</p>
+<pre><code>sudo service sshd restart</code></pre>
+<p>此时，我们就可以测试一下是否可以用秘钥登录了，将服务器目录中的秘钥~/.ssh/id_rsa下载到本地</p>
+<p>如果是windows用户，推荐使用MobaXterm，在ssh设置中，勾选使用秘钥并且选择本地秘钥即可。</p>
+<p><img src="/blogs/images/ssh002.png"></p>
+<p>如果平台是Mac os，这里推荐使用iTerm 4，同样在ssh设置中，选择运行ssh命令。</p>
+<p><img src="/blogs/images/ssh003.jpg"></p>
+<p>设置命令:</p>
+<pre><code>ssh -p 22 root@你的ip -i 你的秘钥地址</code></pre>
+<p>如果使用秘钥登录成功了，我们就可以考虑停用密码验证登录方式，修改/etc/ssh/sshd_config 文件将PasswordAuthentication yes 修改成 PasswordAuthentication no。</p>
+<p>重启ssh服务</p>
+<pre><code>sudo service sshd restart</code></pre>
+<p>这样安全性确实大大提升了，但是也不是滴水不漏，因为你本地电脑也是有可能被入侵的，也就是存储在本机电脑的私钥有几率被窃取，那么有没有方法可以杜绝这种情况呢？</p>
+<p>答案是可以的，那就是使用双因子认证（Two-factor authentication），业内也叫两步认证，这项技术苹果和谷歌都是率先使用，尤其是苹果的icloud爆出艳照门之后，两步验证就显得至关重要。</p>
+<p>双因子认证，除了需要验证用户名密码外，还要结合另外一种实物设备，如Rsa令牌，或者手机。</p>
+<p>如果我们把传统的用户名密码验证称为单因子认证，那么对比双因子认证，他们的区别如下：</p>
+<p>1FA – What you know (e.g. a password, a pin)</p>
+<p>2FA – What you have (e.g. a phone, a hardware token)</p>
+<p>3FA – What you are (e.g. your fingerprints, you retina)</p>
+<p>是的，你没看错，还有三因子认证，也就是通过指纹和视网膜验证，这个在手机上很普遍，大家都不陌生。</p>
+<p>双因子认证的产品大致可以分成两类：</p>
+<p>1、可以产生token的硬件设备</p>
+<p>2、智能手机的app</p>
+<p>手机短信验证码，登录微信公众号时的扫码确认都可以称为双因子认证。双因子认证，还会结合一个只有你有的硬件设备。只要这个专属的硬件设备不丢失（察觉这个设备丢失，比用户名密码泄露，会容易很多），就可以大大地提升账号的安全性。</p>
+<p>这里我们使用google-authenticator，开启服务器双因子认证。</p>
+<p>首先，去google的android应用市场，或者apple的appStore去安装：“Google Authenticator（google身份验证器）”。</p>
+<p>然后登录要开启双因子认证登录的服务器，进行为服务器安装依赖</p>
+<pre><code>yum -y install gcc gcc-c++ make wget pam-devel</code></pre>
+<p>安装Google Authenticator</p>
+<pre><code>wget http://google-authenticator.googlecode.com/files/libpam-google-authenticator-1.0-source.tar.bz2
+tar jxvf libpam-google-authenticator-1.0-source.tar.bz2
+cd libpam-google-authenticator-1.0
+make
+sudo make install</code></pre>
+<p>使用SSH登录时调用google-authenticator模块</p>
+<p>编辑文件/etc/pam.d/sshd，添加：</p>
+<pre><code>auth   required     pam_google_authenticator.so</code></pre>
+<p>再次编辑/etc/ssh/sshd_config，在文件中查找ChallengeResponseAuthentication和UsePAM，将后面的值改为 yes：</p>
+<pre><code>ChallengeResponseAuthentication yes
+UsePAM yes</code></pre>
+<p>再次重启ssh服务</p>
+<pre><code>sudo service sshd restart</code></pre>
+<p>随后，为用户root绑定认证</p>
+<pre><code>su -
+google-authenticator</code></pre>
+<p>返回命令</p>
+<pre><code>Do you want authentication tokens to be time-based (y/n) y
+https://www.google.com/chart?chs=200x200&amp;chld=M|0&amp;cht=qr&amp;chl=otpauth://totp/root@google%3Fsecret%3DCKHMVUVJNTPYSPTQ
+Your new secret key is: CKHMVUVJNTPYSPTQ
+Your verification code is 734261
+Your emergency scratch codes are:
+68748337
+15176712
+30287010
+70585905
+38041521</code></pre>
+<p>生成了共享秘钥：CKHMVUVJNTPYSPTQ</p>
+<p>接着一路yes</p>
+<pre><code>Do you want me to update your &quot;/root/.google_authenticator&quot; file (y/n) y
+
+Do you want to disallow multiple uses of the same authentication
+token? This restricts you to one login about every 30s, but it increases
+your chances to notice or even prevent man-in-the-middle attacks (y/n) y
+
+By default, tokens are good for 30 seconds and in order to compensate for
+possible time-skew between the client and the server, we allow an extra
+token before and after the current time. If you experience problems with poor
+time synchronization, you can increase the window from its default
+size of 1:30min to about 4min. Do you want to do so (y/n) y
+
+If the computer that you are logging into isn&#39;t hardened against brute-force
+login attempts, you can enable rate-limiting for the authentication module.
+By default, this limits attackers to no more than 3 login attempts every 30s.
+Do you want to enable rate-limiting (y/n) y</code></pre>
+<p>随后再次登录服务器，会让我们输入一个验证码：</p>
+<pre><code>verification code:</code></pre>
+<p>此时打开手机上的google身份验证器App，输入对应的code即可</p>
+<p><img src="/blogs/images/ssh004.png"></p>
+<p>结语：网络千万条，安全第一条，无论多么高深的技术，离开了安全性，那么一切都将失去意义，是空谈，空谈误国，实干兴邦，网络安全，造福大家。</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2019/05/03/Sid-20-04/" title="Centos上配置nginx+uwsgi+负载均衡配"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: Centos上配置nginx+uwsgi+负载均衡配</span></a><a class="button is-default" href="/blogs/2019/05/03/Sid-20-05/" title="Centos上配置nginx+uwsgi+负载均衡配"><span class="has-text-weight-semibold">下一页: Centos上配置nginx+uwsgi+负载均衡配</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>

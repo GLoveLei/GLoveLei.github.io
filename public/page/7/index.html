@@ -1,0 +1,164 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>Lei Gao's blog</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/widget-post-list.css"><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><article class="post-container is-flex is-justify-content-center section container is-max-widescreen pt-4 px-2"><div class="columns is-variable is-1-tablet is-3-desktop-only is-2-widescreen is-full-width"><section class="column"><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/nginx_01.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2019/05/03/Sid-20-03/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/nginx_01.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/python"><i class="tag post-item-tag">python</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2019/05/03/Sid-20-03/">Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.</a></h2><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><p class="is-flex-grow-2 mt-2">
+一直以来想写一篇完整的在阿里云服务器上部署Django服务结合uwsgi，并且通过nginx做反向代理。因为网上的攻略鱼龙混杂，加上技术不断更新，一些年代久远的文章很容易让人在部署的过程中掉坑里，无法自拔，所以本篇文章以最新的阿里云服务器centos7.6为背景，完全阐述如何部署，亲测可用，其实要说难点完全没有，只要按部就班，就不会有问题。
+当你购买了阿里云的ecs，涉及ecs的有两个密码，一定要搞清楚，一个密码是远程链接密码，也就是通过浏览器连接服务器的密码，另外一个是实例密码，这个密码就是ecs的root密码，一般情况下，我们经常用到的是实例密码。
+安装python3 和 django 以及一些django扩展yum install epel-release
+
+yum install python36..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2019/05/03/Sid-20-03/">更多</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/nginx_02.jpeg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2019/05/03/Sid-20-04/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/nginx_02.jpeg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/linux"><i class="tag post-item-tag">linux</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2019/05/03/Sid-20-04/">Centos上配置nginx+uwsgi+负载均衡配</a></h2><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><p class="is-flex-grow-2 mt-2">负载均衡在服务端开发中算是一个比较重要的特性。因为Nginx除了作为常规的Web服务器外，还会被大规模的用于反向代理后端，Nginx的异步框架可以处理很大的并发请求，把这些并发请求hold住之后就可以分发给后台服务端(backend servers, 后面简称backend)来做复杂的计算、处理和响应，并且在业务量增加的时候可以方便地扩容后台服务器。
+说白了就是，随着业务和用户规模的增长，仅仅一台服务器无法肩负起高并发的响应，所以需要两台以上的服务器共同分担压力，而分担压力的媒介就是万能的Nginx。
+
+首先，利用wsgi在不同的端口上起两个Django服务，比如8002和8003
+然后修改nginx网站配置 vim /etc/nginx/conf.d/default.conf，将原uwsgi_pass注释..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2019/05/03/Sid-20-04/">更多</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/ssh001.jpeg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2019/05/03/Sid-21-03/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/ssh001.jpeg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/python"><i class="tag post-item-tag">python</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2019/05/03/Sid-21-03/">别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</a></h2><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><p class="is-flex-grow-2 mt-2">
+如果你购买了阿里云、腾讯云或者华为云等国内云服务上的服务器，默认登录都是以密码的方式，这就给潜在的渗透带来了机会，因为当你的linux服务器暴露在外网当中时，服务器就极有可能会遭到互联网上的扫描软件进行扫描，然后试图连接ssh端口进行暴力破解（穷举扫描），如果你不采取相对应的措施，迟早有一天服务器会被渗透者攻陷，这也就解释了为什么google cloud（谷歌云）和aws（亚马逊云）默认都是以秘钥的方式登录服务器。
+基于密钥的安全验证必须为用户自己创建一对密钥（公钥和私钥），并把公钥放在需要访问的服务器上。当需要连接到远程服务器上时，客户端软件就会向服务器发出请求，请求使用私钥进行安全验证。服务器收到请求之后，先在该用户的根目录下寻找公钥，然后把它和发送过来的密钥进行比较。如果两个密钥一致，服务器就用公有..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2019/05/03/Sid-21-03/">更多</a></section></article><article class="post-item-card"><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/linux"><i class="tag post-item-tag">linux</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2019/05/03/Sid-20-05/">Centos上配置nginx+uwsgi+负载均衡配</a></h2><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><p class="is-flex-grow-2 mt-2">如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。
+申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录
+证书后下载 key、pem后缀文件
+然后打开nginx配置文件
+vim /etc/nginx/conf.d/default.conf
+同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口
+server &amp;#123;
+    listen       80;
+    server_name  m9u.cn;
+    #这一步是http..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2019/05/03/Sid-20-05/">更多</a></section></article><section class="paginator is-flex is-justify-content-flex-end is-flex-wrap-wrap"><a class="extend prev" rel="prev" href="/blogs/page/6/"><i class="iconfont icon-prev has-text-grey"></i></a><a class="page-number" href="/blogs/">1</a><span class="space">&hellip;</span><a class="page-number" href="/blogs/page/5/">5</a><a class="page-number" href="/blogs/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/blogs/page/8/">8</a><a class="page-number" href="/blogs/page/9/">9</a><a class="extend next" rel="next" href="/blogs/page/8/"><i class="iconfont icon-next has-text-grey"></i></a></section></section><aside class="column is-hidden-mobile is-4-tablet is-3-widescreen"><style>.search-widget .search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--second-text-color);
+}
+.search-widget .search-content {
+    position: absolute;
+    left: 0;
+    top: calc(100% - 3px);
+    z-index: 2;
+
+    width: 100%;
+    height: 0;
+    max-height: 550px;
+
+    overflow: auto;
+    box-sizing: border-box;
+
+    background: var(--top-bar-bg-color);
+    backdrop-filter: blur(var(--backdropFilter));
+    -webkit-backdrop-filter: blur(var(--backdropFilter));
+
+    border-bottom-left-radius: var(--borderRadius);
+    border-bottom-right-radius: var(--borderRadius);
+    box-shadow: 0 12px 15px rgba(0, 0, 0, 0.08);
+}
+</style><main class="aside-card-container search-widget is-relative"><label for="searchInput"><div class="is-flex px-4" id="searchButton"><i class="iconfont icon--search1 mr-1"></i><input class="search-input is-flex-grow-1" id="searchInput" placeholder="搜索内容.."></div></label><section class="search-content content" id="searchContent"></section></main><script>var searchDatabase = []
+var searchInputEl = document.getElementById('searchInput')
+var searchButtonEl = document.getElementById('searchButton')
+var searchResultEl = document.getElementById('searchContent')
+
+searchInputEl.oninput = function (evt) {
+    var searchValue = evt.srcElement.value
+    var haveSearchValue = Boolean(searchValue.trim())
+    if (!haveSearchValue) {
+        searchResultEl.style.height = 0
+        searchResultEl.innerHTML = null
+        return
+    }
+
+    var searchResults = searching(searchValue)
+
+    if (searchResults.length > 0) {
+        renderSearchResults(searchResults)
+    }
+}
+
+function renderSearchResults(results) {
+    searchResultEl.innerHTML = null
+    var fragment = document.createDocumentFragment()
+
+    results.forEach(function (item) {
+        var link = document.createElement('a')
+        var title = document.createElement('h5')
+        var content = document.createElement('p')
+
+        title.className = 'mb-1'
+        title.innerText = item.title
+        content.innerText = item.content
+
+        link.href = item.link
+        link.appendChild(title)
+        link.appendChild(content)
+        link.className = 'p-4 is-block'
+
+        fragment.appendChild(link)
+    })
+
+    searchResultEl.appendChild(fragment)
+    searchResultEl.style.height = 'auto'
+}
+
+function searching(inputText) {
+    var inputTexts = inputText.split(' ')
+    var searchResults = []
+    inputTexts.forEach(function (searchKey) {
+        var haveSearchValue = Boolean(searchKey.trim())
+        if (!haveSearchValue) return
+
+        var key = searchKey.toLowerCase()
+
+        for (var entry of searchDatabase) {
+            var title = entry.getElementsByTagName('title')[0].textContent
+            var link = entry.getElementsByTagName('link')[0].getAttribute('href')
+            var contentWithTags = entry.getElementsByTagName('content')[0].textContent
+            var rawContent = contentWithTags.trim().replace(/<[^>]+>/g, '').toLowerCase()
+
+            var LENGTH = 80
+            var finalContent = ''
+            var contentLength = rawContent.length
+            var searchResultIdx = rawContent.indexOf(key)
+
+            var startIdx = searchResultIdx - 20,
+                endIdx = startIdx + LENGTH
+
+            if (startIdx < 0) {
+                startIdx = 0
+                endIdx = 100
+            }
+
+            endIdx > contentLength && (endIdx = contentLength)
+
+            finalContent = rawContent.substring(startIdx, endIdx)
+
+            if (title.indexOf(key) > -1 || searchResultIdx > -1) {
+                searchResults.push({
+                    link: link,
+                    title: title,
+                    content: finalContent
+                })
+            }
+        }
+    })
+    return searchResults
+}
+
+searchButtonEl.onclick = function () {
+    if (searchDatabase.length > 0) return;
+
+    fetch(window.location.href + '/search.xml').then(res => res.text()).then(res => {
+        var domparser = new DOMParser
+        var doc = domparser.parseFromString(res, 'application/xml')
+        searchDatabase = doc.getElementsByTagName('search')[0].children
+    })
+}</script><main class="aside-card-container profile-widget"><!-- todo: 使用取色工具动态阴影--><section class="is-flex is-flex-direction-column is-justify-content-center is-align-items-center"><section class="is-flex is-justify-content-center avatar is-clipped skeleton"><!-- debug images "https://api.ixiaowai.cn/gqapi/gqapi.php"--><img class="js-img-fadeIn" src="/blogs/images/avatar.jpg" alt="user avatar"></section><h3 class="user-name">Lei Gao</h3><blockquote class="has-text-centered is-relative"><span style="margin-bottom: 5px;">Choose what you love</span></blockquote><address class="has-text-centered has-text-grey"><i class="iconfont icon-location" style="margin-right: 5px;"></i><span class="has-text-grey">Bei Jin</span></address></section><section class="sns-container is-flex is-justify-content-center is-align-items-center"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section></main><main class="aside-card-container recent-widget"><h3>最近</h3><ul><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="/blogs/images/nginx_01.png" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/blogs/2019/05/03/Sid-20-03/">Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="/blogs/images/nginx_02.jpeg" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/blogs/2019/05/03/Sid-20-04/">Centos上配置nginx+uwsgi+负载均衡配</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="/blogs/images/ssh001.jpeg" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/blogs/2019/05/03/Sid-21-03/">别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://ui-avatars.com/api/?background=f5f5f5&amp;name=Ce" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/blogs/2019/05/03/Sid-20-05/">Centos上配置nginx+uwsgi+负载均衡配</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time></section></li></ul></main><main class="aside-card-container categories-widget category-page"><h3>分类</h3><section><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/Vue/">Vue</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/django/">django</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/docker/">docker</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/flask/">flask</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/golang/">golang</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/mysql/">mysql</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/nginx/">nginx</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/openai/">openai</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/python/">python</a><span class="category-list-count">11</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/python-vue/">python&vue</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/redis/">redis</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/shell/">shell</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/vue/">vue</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/websocket/">websocket</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/blogs/categories/%E6%96%87%E5%BF%83%E4%B8%80%E8%A8%80/">文心一言</a><span class="category-list-count">1</span></li></ul></section></main><main class="aside-card-container archives-widget"><h3>归档</h3><section><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2023/04/">四月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2023/03/">三月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2022/05/">五月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2022/04/">四月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/05/">五月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/03/">三月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/02/">二月 2021</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/01/">一月 2021</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2019/05/">五月 2019</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2019/04/">四月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2019/03/">三月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2018/12/">十二月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2018/02/">二月 2018</a><span class="archive-list-count">1</span></li></ul></section></main><main class="aside-card-container tag-widget"><h3>标签</h3><section><a href="/blogs/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"><span class="tag post-item-tag" style="margin-bottom: 5px;">人工智能</span></a><a href="/blogs/tags/flask"><span class="tag post-item-tag" style="margin-bottom: 5px;">flask</span></a><a href="/blogs/tags/Celery%E6%9D%A5%E5%AE%9E%E7%8E%B0%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E4%BB%A5%E5%8F%8A%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1"><span class="tag post-item-tag" style="margin-bottom: 5px;">Celery来实现异步任务队列以及定时任务</span></a><a href="/blogs/tags/mysql"><span class="tag post-item-tag" style="margin-bottom: 5px;">mysql</span></a><a href="/blogs/tags/python"><span class="tag post-item-tag" style="margin-bottom: 5px;">python</span></a><a href="/blogs/tags/linux"><span class="tag post-item-tag" style="margin-bottom: 5px;">linux</span></a><a href="/blogs/tags/Vue%E8%B7%AF%E7%94%B1%E9%92%A9%E5%AD%90%E5%87%BD%E6%95%B0"><span class="tag post-item-tag" style="margin-bottom: 5px;">Vue路由钩子函数</span></a><a href="/blogs/tags/Vue%E7%88%B6%E5%AD%90%E7%BB%84%E4%BB%B6%20%E5%AD%90%E7%88%B6%E7%BB%84%E4%BB%B6"><span class="tag post-item-tag" style="margin-bottom: 5px;">Vue父子组件 子父组件</span></a><a href="/blogs/tags/celery%E5%BC%82%E6%AD%A5%E6%A1%86%E6%9E%B6"><span class="tag post-item-tag" style="margin-bottom: 5px;">celery异步框架</span></a><a href="/blogs/tags/axios%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="tag post-item-tag" style="margin-bottom: 5px;">axios拦截器</span></a><a href="/blogs/tags/%E4%B8%89%E6%96%B9%E6%94%AF%E4%BB%98"><span class="tag post-item-tag" style="margin-bottom: 5px;">三方支付</span></a><a href="/blogs/tags/redis%E9%94%AE%E7%A9%BA%E9%97%B4%E4%BA%8B%E4%BB%B6"><span class="tag post-item-tag" style="margin-bottom: 5px;">redis键空间事件</span></a><a href="/blogs/tags/Vue%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="tag post-item-tag" style="margin-bottom: 5px;">Vue拦截器</span></a><a href="/blogs/tags/webshell"><span class="tag post-item-tag" style="margin-bottom: 5px;">webshell</span></a><a href="/blogs/tags/%E6%97%A0%E6%9E%81%E9%99%90%E8%87%AA%E5%85%B3%E8%81%94"><span class="tag post-item-tag" style="margin-bottom: 5px;">无极限自关联</span></a><a href="/blogs/tags/%E7%9B%B4%E6%92%AD"><span class="tag post-item-tag" style="margin-bottom: 5px;">直播</span></a><a href="/blogs/tags/%E5%BE%AE%E5%8D%9A%E4%B8%89%E6%96%B9%E7%99%BB%E5%BD%95"><span class="tag post-item-tag" style="margin-bottom: 5px;">微博三方登录</span></a><a href="/blogs/tags/golang"><span class="tag post-item-tag" style="margin-bottom: 5px;">golang</span></a><a href="/blogs/tags/Redis%E8%AE%A2%E9%98%85%E4%B8%8E%E5%8F%91%E5%B8%83"><span class="tag post-item-tag" style="margin-bottom: 5px;">Redis订阅与发布</span></a><a href="/blogs/tags/%E4%B8%83%E7%89%9B%E4%BA%91%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0"><span class="tag post-item-tag" style="margin-bottom: 5px;">七牛云文件上传</span></a><a href="/blogs/tags/%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE"><span class="tag post-item-tag" style="margin-bottom: 5px;">工单项目</span></a><a href="/blogs/tags/%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9"><span class="tag post-item-tag" style="margin-bottom: 5px;">异步消费</span></a><a href="/blogs/tags/docker%E6%93%8D%E4%BD%9C%20%E5%AE%B9%E5%99%A8%E3%80%81%E9%95%9C%E5%83%8F%20dockerfile"><span class="tag post-item-tag" style="margin-bottom: 5px;">docker操作 容器、镜像 dockerfile</span></a></section></main></aside></div></article><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
+
+window.addEventListener('resize', $claudia.throttle(function () {
+    var images = document.querySelectorAll('.js-img-fadeIn')
+
+    images.forEach($claudia.blurBackdropImg)
+}, 150))</script></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
+
+window.addEventListener('resize', $claudia.throttle(function () {
+    var images = document.querySelectorAll('.js-img-fadeIn')
+
+    images.forEach($claudia.blurBackdropImg)
+}, 150))</script></body></html>

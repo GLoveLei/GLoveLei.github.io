@@ -1,0 +1,108 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>GoLang的Hugo配合nginx来打造属于自己的纯静态博客系.</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="Go lang无疑是目前的当红炸子鸡，极大地提高了后端编程的效率，同时有着极高的性能。借助Go语言我们 可以用同步的方式写出高并发的服务端软件，同时，Go语言也是云原生第一语言，Docker，Kubernetes等等著名的项目都是使用Go语言实现的。
+Hugo 是基于 Go 语言的静态网站生成器。
+什么是静态网站生成器？顾名思义，就是以最快的速度生成一个高可用的web页面，我们知道Django作为一款非常流行的框架被广泛应用，但是部署起来实在是太麻烦了，各种命令各种配置，动态页面必然要涉及数据库的配置和操作，另外只要涉及数据库操作，你就不得不考虑sql注入等一系列的安全因素。而纯静态页面则没有这个烦恼，如果我们只需要一个简单的站点，一些简单的功能和页面，比如博客，我们只想以极简的方式用markdown语法写.."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">GoLang的Hugo配合nginx来打造属于自己的纯静态博客系.</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile is-hidden"></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/golang"><i class="tag post-item-tag">golang</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">GoLang的Hugo配合nginx来打造属于自己的纯静态博客系.</h1><time class="has-text-grey" datetime="2022-05-23T06:59:21.000Z">2022-05-23</time><article class="mt-2 post-content"><p><img src="/blogs/images/goblog.png" alt="cover"><br>Go lang无疑是目前的当红炸子鸡，极大地提高了后端编程的效率，同时有着极高的性能。借助Go语言我们 可以用同步的方式写出高并发的服务端软件，同时，Go语言也是云原生第一语言，Docker，Kubernetes等等著名的项目都是使用Go语言实现的。</p>
+<p>Hugo 是基于 Go 语言的静态网站生成器。</p>
+<p>什么是静态网站生成器？顾名思义，就是以最快的速度生成一个高可用的web页面，我们知道Django作为一款非常流行的框架被广泛应用，但是部署起来实在是太麻烦了，各种命令各种配置，动态页面必然要涉及数据库的配置和操作，另外只要涉及数据库操作，你就不得不考虑sql注入等一系列的安全因素。而纯静态页面则没有这个烦恼，如果我们只需要一个简单的站点，一些简单的功能和页面，比如博客，我们只想以极简的方式用markdown语法写下文字或者代码，让服务器访问纯静态页面，这就是静态网站生成器可以提供给我们的好处。</p>
+<p>为啥选择Hugo?</p>
+<p>Hugo是一种go语言编写的静态网站生成器。适用于搭建个人blog、公司主页、help等网站，是一种小型的CMS系统。静态站点的好处就是快速、安全、易于部署，方便管理。</p>
+<p>Hugo的优点包含但不限于：</p>
+<pre><code>世界上最快的静态网站生成工具，5秒生成6000个页面
+
+文档为Markdown格式,语法超简单
+
+Hugo 可以做静态文件生成工具，还是高性能web 服务；
+
+丰富的站点迁移工具，可以将wordpress，Ghost，Jekyll，DokuWiki，Blogger轻松迁移至 Hugo
+
+超详细的文档
+
+活跃的社区
+
+更加自由的内容组织方式
+
+丰富的主题模板，可以让你的网站更加炫目多彩</code></pre>
+<p>多环境支持：macos ，linux，windows</p>
+<p>首先，可以去go的官网网站下载安装包 <a target="_blank" rel="noopener" href="https://golang.org/dl/">https://golang.org/dl/</a> 然后直接双击安装即可，不需要配置环境变量，因为安装过程自动配置，安装完毕后，打开命令行，输入</p>
+<pre><code>go version</code></pre>
+<p>显示主版本号即表示安装成功</p>
+<p>然后，可以进行hugo的在线源码编译安装，打开命令行，输入下面的命令</p>
+<pre><code>go get -u -v github.com/spf13/hugo
+go build -o hugo main.go
+mv hugo $GOPATH/bin</code></pre>
+<p>如果你不想在线编译安装，也可以去hugo的官网 <a href="https://github.com/gohugoio/hugo/releases">https://github.com/gohugoio/hugo/releases</a> 下载稳定版的压缩包，解压之后配置一下环境变量也可以</p>
+<p>装完以后，在命令行内输入</p>
+<pre><code>hugo version</code></pre>
+<p>打印出版本号即表示hugo安装成功</p>
+<p>在命令行中输入命令</p>
+<pre><code>hugo new site hugo_blog</code></pre>
+<p>就生成了一个名字为hugo_blog的新站点，可以感受到速度非常快，和vue.js创建新站点的速度比起来简直天差地别</p>
+<p>打开配置文件config.toml，这是hugo的站点的相关配置，可以进行一些个性化的定制，改为下面这样：</p>
+<pre><code>baseURL = &quot;/&quot;
+languageCode = &quot;en-us&quot;
+title = &quot;我的博客&quot;
+#指定主题
+theme = &quot;hyde&quot;
+
+[params]
+#博客简介
+description = &quot;这里是刘悦的个人博客&quot;
+#博客主题颜色
+themeColor = &quot;theme-base-08&quot;</code></pre>
+<p>可以看到我们制定了一个主题hyde，添加了Theme后的站点才有血有肉，丰富多彩。</p>
+<p>更多的主题可以在这个上面下载，都是免费而开源的：<a target="_blank" rel="noopener" href="https://themes.gohugo.io/">https://themes.gohugo.io/</a></p>
+<p>进入到站点内的themes目录，输入命令下载hyde主题，hugo有很多漂亮的主题可以选择</p>
+<pre><code>git clone https://github.com/spf13/hyde.git</code></pre>
+<p>结构和样式有了，我们还没有内容。我们来创建站点的第一篇文章</p>
+<p>输入命令</p>
+<pre><code>hugo new one.md</code></pre>
+<p>hugo在content下创建one.md文件，我们编写一些文件内容：</p>
+<pre><code>---
+date: &quot;2019-05-23&quot;
+title: &quot;第一篇文章&quot;
+---
+
+### 你好啊
+
+123123123
+
+print(&#39;hello world&#39;)
+</code></pre>
+<p>然后在命令行中输入</p>
+<pre><code>hugo server</code></pre>
+<p>然后访问本地：1313 端口</p>
+<p>至此，非常快速而简单博客已经做好了，那么如何部署到线上呢？非常简单输入命令进行打包操作：</p>
+<pre><code>hugo --baseUrl=&quot;/&quot;</code></pre>
+<p>hugo就会把你的站点生成纯静态页面，然后打包到public文件夹</p>
+<p>将public上传到阿里云服务器的root目录下</p>
+<p>修改nginx配置文件</p>
+<pre><code>vim /etc/nginx/conf.d/default.conf</code></pre>
+<p>监听80端口，并且项目目录指定/root/public</p>
+<pre><code>server &#123;
+    listen       80;
+    server_name  localhost;
+
+    access_log      /root/md_vue_access.log;
+    error_log       /root/md_vue_error.log;
+
+
+    client_max_body_size 75M;
+
+
+    location / &#123;
+
+        root /root/public;
+        index index.html;
+
+    &#125;
+
+    error_log    /root/md_vue/error.log    error;
+
+&#125;</code></pre>
+<p>重启nginx systemctl restart nginx.service 然后访问博客就搭建好了</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2023/03/02/OpenAi/" title="OpenAi."><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: OpenAi.</span></a><a class="button is-default" href="/blogs/2022/04/22/id-22-04/" title="通过堡垒机/跳板机实现文件在服务器之间的互传"><span class="has-text-weight-semibold">下一页: 通过堡垒机/跳板机实现文件在服务器之间的互传</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>

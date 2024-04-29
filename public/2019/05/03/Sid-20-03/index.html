@@ -1,0 +1,275 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="
+一直以来想写一篇完整的在阿里云服务器上部署Django服务结合uwsgi，并且通过nginx做反向代理。因为网上的攻略鱼龙混杂，加上技术不断更新，一些年代久远的文章很容易让人在部署的过程中掉坑里，无法自拔，所以本篇文章以最新的阿里云服务器centos7.6为背景，完全阐述如何部署，亲测可用，其实要说难点完全没有，只要按部就班，就不会有问题。
+当你购买了阿里云的ecs，涉及ecs的有两个密码，一定要搞清楚，一个密码是远程链接密码，也就是通过浏览器连接服务器的密码，另外一个是实例密码，这个密码就是ecs的root密码，一般情况下，我们经常用到的是实例密码。
+安装python3 和 django 以及一些django扩展yum install epel-release
+
+yum install python36.."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85python3-%E5%92%8C-django-%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%BA%9Bdjango%E6%89%A9%E5%B1%95"><span class="toc-text">安装python3 和 django 以及一些django扩展</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85mysql"><span class="toc-text">安装mysql</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85redis"><span class="toc-text">安装redis</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85mongodb"><span class="toc-text">安装mongodb</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85nginx"><span class="toc-text">安装nginx</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85uwsgi"><span class="toc-text">安装uwsgi</span></a></li></ol></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/python"><i class="tag post-item-tag">python</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.</h1><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><article class="mt-2 post-content"><p><img src="/blogs/images/nginx_01.png" alt="cover"></p>
+<p>一直以来想写一篇完整的在阿里云服务器上部署Django服务结合uwsgi，并且通过nginx做反向代理。因为网上的攻略鱼龙混杂，加上技术不断更新，一些年代久远的文章很容易让人在部署的过程中掉坑里，无法自拔，所以本篇文章以最新的阿里云服务器centos7.6为背景，完全阐述如何部署，亲测可用，其实要说难点完全没有，只要按部就班，就不会有问题。</p>
+<p>当你购买了阿里云的ecs，涉及ecs的有两个密码，一定要搞清楚，一个密码是远程链接密码，也就是通过浏览器连接服务器的密码，另外一个是实例密码，这个密码就是ecs的root密码，一般情况下，我们经常用到的是实例密码。</p>
+<h4 id="安装python3-和-django-以及一些django扩展"><a href="#安装python3-和-django-以及一些django扩展" class="headerlink" title="安装python3 和 django 以及一些django扩展"></a><a href="about:blank#%E5%AE%89%E8%A3%85python3-%E5%92%8C-django-%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%BA%9Bdjango%E6%89%A9%E5%B1%95" title="安装python3 和 django 以及一些django扩展"></a>安装python3 和 django 以及一些django扩展</h4><pre><code>yum install epel-release
+
+yum install python36
+
+wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py
+
+python3 get-pip.py
+
+安装django
+
+pip3 install pymysql
+
+pip3 install pillow
+
+pip3 install pycryptodome
+
+pip3 install cryptography
+
+pip3 install Django==2.0.4
+
+pip3 install djangorestframework
+
+pip3 install django-cors-headers
+
+pip3 install celery
+
+pip3 install celery-with-redis
+
+pip3 install django-celery
+
+pip3 install dwebsocket
+
+
+安装opencv-python
+
+yum  install  numpy  opencv*
+pip3 install opencv-python
+yum whatprovides libstdc++.so.6
+yum install libstdc++-4.4.7-3.el6.i686
+yum install libSM-1.2.2-2.el7.x86_64 --setopt=protected_multilib=false</code></pre>
+<p>新建工程，并且测试</p>
+<pre><code>django-admin startproject mypro
+cd mypro
+python3 manage.py runserver 0.0.0.0:8000</code></pre>
+<p>访问服务器 实例id：8000 查看</p>
+<h4 id="安装mysql"><a href="#安装mysql" class="headerlink" title="安装mysql"></a><a href="about:blank#%E5%AE%89%E8%A3%85mysql" title="安装mysql"></a>安装mysql</h4><pre><code>wget &#39;https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm&#39;
+
+rpm -Uvh mysql57-community-release-el7-11.noarch.rpm
+
+yum install -y mysql-community-server
+#启动服务
+systemctl start mysqld
+#查看服务状态
+systemctl status mysqld
+
+查看数据库密码
+grep &#39;temporary password&#39; /var/log/mysqld.log</code></pre>
+<pre><code>然后利用这个密码进入mysql命令行 mysql -uroot -p查到的密码
+
+SET PASSWORD = PASSWORD(&#39;Admin123!&#39;);
+
+设置远程登录
+GRANT ALL PRIVILEGES ON *.* TO &#39;root&#39;@&#39;%&#39; IDENTIFIED BY &#39;Admin123!&#39; WITH GRANT OPTION;
+flush privileges;
+
+vim /etc/my.cnf
+在[mysqld]下面添加，不需要分号
+字符集:注意是utf8而不是utf-8!
+character-set-server=utf8
+这时候使用show variables like &#39;char%&#39;;就可以查看到字符集都是utf8了
+sql支持group by语句
+sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+设置时区为东八区
+default-time_zone = &#39;+8:00&#39;
+
+重启服务
+systemctl restart mysqld
+
+设置开机启动
+systemctl enable mysqld
+systemctl daemon-reload
+
+如果需要更改为简单的密码
+
+1.停止mysql服务
+
+systemctl stop mysqld.service
+
+
+2.修改配置文件无密码登录
+
+vim  /etc/my.cnf
+
+在最后加上
+
+skip-grant-tables
+
+保存
+
+3.启动mysql
+
+systemctl  start  mysqld.service
+
+
+4.登录mysql
+
+mysql -u root
+
+注意这里不要加-p
+
+5.修改密码，mysql5.7用此语法
+
+use mysql;
+
+update mysql.user set authentication_string=password(&#39;123456&#39;) where user=&#39;root&#39; ;  
+
+6.回到第二部把刚加的那句删掉
+
+保存，重启mysql就可以了</code></pre>
+<p>测试mysql服务</p>
+<h4 id="安装redis"><a href="#安装redis" class="headerlink" title="安装redis"></a><a href="about:blank#%E5%AE%89%E8%A3%85redis" title="安装redis"></a>安装redis</h4><pre><code>yum install redis
+
+启动服务
+systemctl start redis
+
+查看版本号
+redis-cli --version
+
+设置开机启动
+systemctl enable redis.service</code></pre>
+<p>测试redis服务</p>
+<h4 id="安装mongodb"><a href="#安装mongodb" class="headerlink" title="安装mongodb"></a><a href="about:blank#%E5%AE%89%E8%A3%85mongodb" title="安装mongodb"></a>安装mongodb</h4><pre><code>vim /etc/yum.repos.d/mongodb-org-3.4.repo
+
+#添加以下内容：
+[mongodb-org-3.4]  
+name=MongoDB Repository  
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.4/x86_64/  
+gpgcheck=0
+enabled=1  
+gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc
+
+清空缓存
+yum makecache
+
+安装
+yum -y install mongodb-org
+
+启动服务
+systemctl start mongod.service
+
+停止服务
+systemctl stop mongod.service
+
+查看服务状态
+systemctl status mongod.service
+
+重启服务
+systemctl restart mongod.service</code></pre>
+<p>测试mongo</p>
+<h4 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a><a href="about:blank#%E5%AE%89%E8%A3%85nginx" title="安装nginx"></a>安装nginx</h4><pre><code>#设置源
+sudo rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+
+#安装
+yum install -y nginx
+
+#启动服务
+systemctl start nginx.service
+
+#关闭服务
+systemctl stop nginx.service
+
+#开机自启
+systemctl enable nginx.service
+
+#修改配置文件
+
+vim /etc/nginx/conf.d/default.conf
+
+改成下面的配置
+
+server &#123;
+    listen       80;
+    server_name  localhost;
+
+    access_log      /root/myweb_access.log;
+    error_log       /root/myweb_error.log;
+
+
+    client_max_body_size 75M;
+
+
+    location / &#123;
+        include uwsgi_params;
+        uwsgi_pass 127.0.0.1:8000;
+        uwsgi_param UWSGI_SCRIPT mypro.wsgi;
+        uwsgi_param UWSGI_CHDIR  /root/mypro;
+
+    &#125;
+
+    location /static &#123;
+        alias /root/mypro/static;
+    &#125;
+&#125;</code></pre>
+<pre><code>设置项目权限
+chmod -R 755 /root/mypro</code></pre>
+<pre><code>#修改配置
+vim /etc/nginx/nginx.conf
+将第一行改为 user root;
+
+然后重启nginx</code></pre>
+<p>测试nginx服务,这里注意下，在不修改nginx配置文件的时候才会出现下面的欢迎页面，如果修改了以后是不能访问默认欢迎页面的</p>
+<h4 id="安装uwsgi"><a href="#安装uwsgi" class="headerlink" title="安装uwsgi"></a><a href="about:blank#%E5%AE%89%E8%A3%85uwsgi" title="安装uwsgi"></a>安装uwsgi</h4><pre><code>uWSGI本身也是web服务器，但因为性能不高，通过nginx中转能够发挥更好的效果
+
+安装依赖
+yum install python36-devel
+
+安装
+pip3 install uwsgi
+
+软连接
+ln -s /usr/local/python3/bin/uwsgi /usr/bin/uwsgi
+
+进入项目目录启动服务
+uwsgi --http :8000 --module mypro.wsgi
+
+效果和 python3 manage.py runserver 0.0.0.0:8000一致
+
+热启动
+uwsgi --http :8000 --module mypro.wsgi --py-autoreload=1
+
+进入项目，编写uwsgi.ini配置文件 vim mypro_uwsgi.ini</code></pre>
+<pre><code>[uwsgi]
+
+chdir           = /root/mypro
+module          = mypro.wsgi
+master          = true
+processes       = 3
+socket            = 0.0.0.0:8000
+vacuum          = true
+pythonpath      = /usr/bin/python3
+pidfile = /root/mypro/mypro.pid
+daemonize  = /root/mypro/uwsgi.log</code></pre>
+<pre><code>启动项目，这里需要注意下，如果你想用uwsgi独立访问网站，就需要把上面配置文件中的socket改成http，如果想用nginx代理，就写成socket
+
+uwsgi --ini mypro_uwsgi.ini
+
+后台启动
+
+uwsgi -d --ini mypro_uwsgi.ini</code></pre>
+<p>杀死和关闭 uwsgi服务</p>
+<pre><code>killall -s INT /usr/local/bin/uwsgi</code></pre>
+<p>停止服务</p>
+<pre><code>uwsgi --stop mypro.pid</code></pre>
+<p>重载服务</p>
+<pre><code>uwsgi --reload mypro.pid
+
+查看服务
+
+ps aux|grep uwsgi</code></pre>
+<p>最后，nginx通过监听80端口反向代理uwsgi启动的django服务，访问网站进行测试</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2019/05/03/Sid-20-02/" title="支付宝(Alipay)退款(refund)接口的开"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: 支付宝(Alipay)退款(refund)接口的开</span></a><a class="button is-default" href="/blogs/2019/05/03/Sid-20-04/" title="Centos上配置nginx+uwsgi+负载均衡配"><span class="has-text-weight-semibold">下一页: Centos上配置nginx+uwsgi+负载均衡配</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>

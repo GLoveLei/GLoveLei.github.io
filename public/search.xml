@@ -1,0 +1,911 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>OpenAI ChatGPT接入微信 wechatbot 搭建微信聊天机器.</title>
+      <link href="/blogs/2023/07/10/wechat-chat/"/>
+      <url>/blogs/2023/07/10/wechat-chat/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/wechat.png" alt="cover"></p><h1 id="OpenAI-ChatGPT接入微信-wechatbot-搭建微信聊天机器人"><a href="#OpenAI-ChatGPT接入微信-wechatbot-搭建微信聊天机器人" class="headerlink" title="OpenAI ChatGPT接入微信 wechatbot 搭建微信聊天机器人"></a><a href="about:blank#OpenAI-ChatGPT%E6%8E%A5%E5%85%A5%E5%BE%AE%E4%BF%A1-wechatbot-%E6%90%AD%E5%BB%BA%E5%BE%AE%E4%BF%A1%E8%81%8A%E5%A4%A9%E6%9C%BA%E5%99%A8%E4%BA%BA" title="OpenAI ChatGPT接入微信 wechatbot 搭建微信聊天机器人"></a>OpenAI ChatGPT接入微信 wechatbot 搭建微信聊天机器人</h1><h2 id="一、准备工作"><a href="#一、准备工作" class="headerlink" title="一、准备工作"></a><a href="about:blank#%E4%B8%80%E3%80%81%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C" title="一、准备工作"></a>一、准备工作</h2><h3 id="首先是注册ChatGPT"><a href="#首先是注册ChatGPT" class="headerlink" title="首先是注册ChatGPT"></a><a href="about:blank#%E9%A6%96%E5%85%88%E6%98%AF%E6%B3%A8%E5%86%8CChatGPT" title="首先是注册ChatGPT"></a>首先是注册ChatGPT</h3><ul><li><p>  1、获取自己 ChatGPT 的 apikey <a href="https://platform.openai.com/account/api-keys">获取地址</a> 登入后即可获取</p></li><li><p>  2、一台VPS境外服务器（本次演示系统 Debian 10 64）<a href="https://www.vultr.com/?ref=8941832-8H">Vultr 购买地址，点此进入</a>：按时计费，最低6$/月。</p></li><li><p>  3、一个微信号（建议使用小号测试）</p></li><li><p>  4、下载并安装FinalShell SSH工具</p></li></ul><p>Windows版下载地址:<a href="http://www.hostbuf.com/downloads/finalshell_install.exe">点此下载</a></p><p>macOS版下载地址: <a href="http://www.hostbuf.com/downloads/finalshell_install.pkg">点此下载</a></p><h2 id="二、ChatGPT接入微信"><a href="#二、ChatGPT接入微信" class="headerlink" title="二、ChatGPT接入微信"></a><a href="about:blank#%E4%BA%8C%E3%80%81ChatGPT%E6%8E%A5%E5%85%A5%E5%BE%AE%E4%BF%A1" title="二、ChatGPT接入微信"></a>二、ChatGPT接入微信</h2><h3 id="开始配置服务器"><a href="#开始配置服务器" class="headerlink" title="开始配置服务器"></a><a href="about:blank#%E5%BC%80%E5%A7%8B%E9%85%8D%E7%BD%AE%E6%9C%8D%E5%8A%A1%E5%99%A8" title="开始配置服务器"></a>开始配置服务器</h3><p>安装 Node 环境</p><pre><code>sudo apt update &amp;&amp; sudo apt upgradecurl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -sudo apt-get install nodejs</code></pre><p>安装<code>git</code>命令</p><pre><code>apt install git</code></pre><p>克隆 Wechat-Chatgpt 项目<a href="https://github.com/fuergaosi233/wechat-chatgpt">点此进入项目地址</a></p><pre><code>git clone https://github.com/fuergaosi233/wechat-chatgpt.git</code></pre><p>进入Wechat-Chatgpt项目</p><pre><code>cd wechat-chatgpt</code></pre><h3 id="安装依赖并创建配置文件"><a href="#安装依赖并创建配置文件" class="headerlink" title="安装依赖并创建配置文件"></a><a href="about:blank#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96%E5%B9%B6%E5%88%9B%E5%BB%BA%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6" title="安装依赖并创建配置文件"></a>安装依赖并创建配置文件</h3><p>切换到new-wechatgpt分支</p><pre><code>git checkout new-wechatgpt</code></pre><p>安装依赖</p><pre><code>npm install</code></pre><p>创建配置文件</p><pre><code>cp config.yaml.example config.yamlcp .env.example .env</code></pre><p>修改配置文件：API = 就是你在openAI官网上生成的apikey</p><pre><code>vi .env</code></pre><p>.env内容如下：</p><pre><code>CHAT_GPT_EMAIL=CHAT_GPT_PASSWORD=CHAT_GPT_RETRY_TIMES=CHAT_PRIVATE_TRIGGER_KEYWORD=OPENAI_PROXY=NOPECHA_KEY=CAPTCHA_TOKEN=OPENAI_API_KEY=填写你的API_KEY</code></pre><p>XShell保存退出指令：首先按ESC进入Command模式，然后输入“：wq”，回车就可以保存并退出了</p><p>修改模型</p><p>打开文件：</p><pre><code>cd wechat-chatgptvi node_modules/chatgpt/build/index.js</code></pre><p>找到73行，修改模型为：CHATGPT_MODEL=”text-davinci-003”</p><pre><code>text-davinci-003</code></pre><h3 id="保存好配置文件后，启动执行下方的启动命令，就可以和机器人聊天了！"><a href="#保存好配置文件后，启动执行下方的启动命令，就可以和机器人聊天了！" class="headerlink" title="保存好配置文件后，启动执行下方的启动命令，就可以和机器人聊天了！"></a><a href="about:blank#%E4%BF%9D%E5%AD%98%E5%A5%BD%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%90%8E%EF%BC%8C%E5%90%AF%E5%8A%A8%E6%89%A7%E8%A1%8C%E4%B8%8B%E6%96%B9%E7%9A%84%E5%90%AF%E5%8A%A8%E5%91%BD%E4%BB%A4%EF%BC%8C%E5%B0%B1%E5%8F%AF%E4%BB%A5%E5%92%8C%E6%9C%BA%E5%99%A8%E4%BA%BA%E8%81%8A%E5%A4%A9%E4%BA%86%EF%BC%81" title="保存好配置文件后，启动执行下方的启动命令，就可以和机器人聊天了！"></a>保存好配置文件后，启动执行下方的启动命令，就可以和机器人聊天了！</h3><pre><code>npm run dev</code></pre><h3 id="如果需要在后台守护进程运行，那么只需运行下面命令"><a href="#如果需要在后台守护进程运行，那么只需运行下面命令" class="headerlink" title="如果需要在后台守护进程运行，那么只需运行下面命令"></a><a href="about:blank#%E5%A6%82%E6%9E%9C%E9%9C%80%E8%A6%81%E5%9C%A8%E5%90%8E%E5%8F%B0%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E8%BF%90%E8%A1%8C%EF%BC%8C%E9%82%A3%E4%B9%88%E5%8F%AA%E9%9C%80%E8%BF%90%E8%A1%8C%E4%B8%8B%E9%9D%A2%E5%91%BD%E4%BB%A4" title="如果需要在后台守护进程运行，那么只需运行下面命令"></a>如果需要在后台守护进程运行，那么只需运行下面命令</h3><pre><code>nohup commandnohup chatgpt &amp;amp;&lt;/dev/null   &amp;amp; </code></pre><p>这样即使你断开VPS，机器人也会在后台运行。</p><p>运行测试结果：<br><img src="/blogs/images/wechat-02.png" alt="cover"></p><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a><a href="about:blank#%E6%80%BB%E7%BB%93" title="总结"></a>总结</h3><p>现在chatgpt已经越来越发达，任何一种接入方式都会让生活变的方便,如果普及以后都不用打开chatgtp官网链接vpn进行查询，方便高效实现高效ai工具<br>唯一美中不足的就是微信有防止接入机制容易封号,愿以后可以更加方便</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> openai </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 人工智能 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>文心一言百度人工智能AI大数据模型文心一言Python3.10接入.</title>
+      <link href="/blogs/2023/04/10/ai-01/"/>
+      <url>/blogs/2023/04/10/ai-01/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/ai-01.png" alt="cover"></p><p>“文心”取自《文心雕龙》一书的开篇，作者刘勰在书中引述了一个古代典故：春秋时期，鲁国有一位名叫孔文子的大夫，他在学问上非常有造诣，但是他的儿子却不学无术，孔文子非常痛心。</p><p>一天，孔文子在山上遇到了一位神仙，神仙告诉他：“你的儿子之所以不学无术，是因为你没有给他灌输文心，让他懂得文学的魅力和意义。”孔文子听后深受启发，回家后开始给儿子灌输文学知识，儿子也逐渐对学问产生了兴趣，最终成为了一位有学问的人。因此，刘勰在书中将“文心”解释为“灌输文学知识的心灵”之意。</p><p>百度以“文心”命名自己的AI产品线，可见其对自己的中文处理能力是极为自信的，ERNIE3.0对标ChatGPT3.5/4.0，ERNIE-ViLG对标Stable-Diffusion，文心PLATO则可以理解为ChatGPT的embedding，可谓是野心勃勃。</p><h3 id="文心一言SDK引入"><a href="#文心一言SDK引入" class="headerlink" title="文心一言SDK引入"></a><a href="about:blank#%E6%96%87%E5%BF%83%E4%B8%80%E8%A8%80SDK%E5%BC%95%E5%85%A5" title="文心一言SDK引入"></a>文心一言SDK引入</h3><p>百度目前已经开源文心一言的sdk工具包：</p><pre><code>pip3 install --upgrade wenxin-api</code></pre><p>和百度云产品线一样，安装好以后，需要去文心一言官网获取appkey和appsecret</p><p><img src="/blogs/images/wenxin.png" alt="cover"></p><p>随后编写请求逻辑：</p><pre><code>import wenxin_api from wenxin_api.tasks.free_qa import FreeQAwenxin_api.ak = &quot;your ak&quot; #输入您的API Keywenxin_api.sk = &quot;your sk&quot; #输入您的Secret Keyinput_dict = &#123;    &quot;text&quot;: &quot;问题：你好！\n回答：&quot;,    &quot;seq_len&quot;: 512,    &quot;topp&quot;: 0.5,    &quot;penalty_score&quot;: 1.2,    &quot;min_dec_len&quot;: 2,    &quot;min_dec_penalty_text&quot;: &quot;。?：！[&lt;S&gt;]&quot;,    &quot;is_unidirectional&quot;: 0,    &quot;task_prompt&quot;: &quot;qa&quot;,    &quot;mask_type&quot;: &quot;paragraph&quot;&#125;requests = FreeQA.create(**input_dict)print(requests)</code></pre><pre><code>&#123;  &quot;code&quot;: 0,  &quot;msg&quot;: &quot;success&quot;,  &quot;data&quot;: &#123;    &quot;result&quot;: &quot;你好！我是百度研发的知识增强大语言模型，能够与人对话互动，回答问题，协助创作，高效便捷地帮助你解决学习和工作中的问题。&quot;,    &quot;createTime&quot;: &quot;2023-03-16 16:02:10&quot;,    &quot;requestId&quot;: &quot;71a6efb46acbd64394374f44579a01eb&quot;,    &quot;text&quot;: &quot;天为什么这么蓝&quot;,    &quot;taskId&quot;: 1000000,    &quot;status&quot;: 1 # 0表示生成中，1表示生成成功  &#125;&#125;</code></pre><p>请求的参数含义请参照官方文档：</p><p><a href="https://wenxin.baidu.com/plato">https://wenxin.baidu.com/plato</a></p><p>这里需要注意的是，虽然参数支持async异步，但那不是指请求的异步方式返回，换句话说，文心模型返回还是需要等待的，并不是ChatGPT那种流式返回模式。</p><h3 id="文心一言API调用"><a href="#文心一言API调用" class="headerlink" title="文心一言API调用"></a><a href="about:blank#%E6%96%87%E5%BF%83%E4%B8%80%E8%A8%80API%E8%B0%83%E7%94%A8" title="文心一言API调用"></a>文心一言API调用</h3><p>文心一言SDK的功能有限，也不支持异步请求调用，如果需要定制化或者使用别的语言请求文心一言，需要提前发起Http请求获取token，这里我们使用异步请求库httpx:</p><pre><code>pip3 install httpx</code></pre><p>添加获取token逻辑：</p><pre><code>class Winxin:    def chat(self,text):        input_dict = &#123;            &quot;text&quot;: f&quot;问题：&#123;text&#125;\n回答：&quot;,            &quot;seq_len&quot;: 512,            &quot;topp&quot;: 0.5,            &quot;penalty_score&quot;: 1.2,            &quot;min_dec_len&quot;: 2,            &quot;min_dec_penalty_text&quot;: &quot;。?：！[&lt;S&gt;]&quot;,            &quot;is_unidirectional&quot;: 0,            &quot;task_prompt&quot;: &quot;qa&quot;,            &quot;mask_type&quot;: &quot;paragraph&quot;        &#125;        rst = FreeQA.create(**input_dict)        print(rst)    async def get_token(self):        headers = &#123;&quot;Content-Type&quot;:&quot;application/x-www-form-urlencoded&quot;&#125;        async with httpx.AsyncClient() as client:            resp = await client.post(f&quot;https://wenxin.baidu.com/moduleApi/portal/api/oauth/token?grant_type=client_credentials&amp;client_id=&#123;wenxin_api.ak&#125;&amp;client_secret=&#123;wenxin_api.sk&#125;&quot;,headers=headers)            result = resp.json()            print(result)</code></pre><p>异步调用文心一言接口的token:</p><pre><code>if __name__ == &#39;__main__&#39;:    wx = Winxin()    asyncio.run(wx.get_token())</code></pre><p>程序返回：</p><pre><code>&#123;&#39;code&#39;: 0, &#39;msg&#39;: &#39;success&#39;, &#39;data&#39;: &#39;24.3f6a63545345ae6588ea86a353.86400000.1679123673218.92a99f8955c6f9ab2c438a5f31b5d73b-173001&#39;&#125;</code></pre><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a><a href="about:blank#%E6%80%BB%E7%BB%93" title="总结"></a>总结</h3><p>产品力而言，ChatGPT珠玉在前，文心一言还有很长的路需要走。ChatGPT虽然是一座遥不可及的高峰，但是其他公司也无须放弃人工智能领域的研究，毕竟作为最老牌的中文搜索引擎，百度浸润几十年的中文处理能力，还是无人能出其右的。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 文心一言 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 人工智能 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>OpenAi.</title>
+      <link href="/blogs/2023/03/16/chatGPT-4/"/>
+      <url>/blogs/2023/03/16/chatGPT-4/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/chatGPT-4.jpeg" alt="cover"></p><p>众所周知，ChatGPT可以帮助研发人员编写或者Debug程序代码，但是在执行过程中，ChatGPT会将程序代码的一些相关文字解释和代码段混合着返回，如此，研发人员还需要自己进行编辑和粘贴操作，效率上差强人意，本次我们试图将ChatGPT直接嵌入到代码业务中，让ChatGPT生成可以直接运行的代码。</p><p>ChatGPT的主观回答问题</p><p><img src="/blogs/images/chatgtp.jpeg"></p><p>可以看到，就像上文所描述的那样，ChatGPT会将文字描述和代码片段混合着返回，其实对于真正的需求者来说，文字描述本身是不必要的，因为如果提问者不知道什么是布隆过滤器，也就不会提出布隆过滤器相关的代码需求。</p><p>再看ChatGPT返回的布隆过滤器代码：</p><pre><code>import mmh3from bitarray import bitarrayclass BloomFilter:    def __init__(self, size, hash_count):        self.size = size        self.hash_count = hash_count        self.bit_array = bitarray(size)        self.bit_array.setall(0)    def add(self, item):        for i in range(self.hash_count):            digest = mmh3.hash(item, i) % self.size            self.bit_array[digest] = 1    def __contains__(self, item):        for i in range(self.hash_count):            digest = mmh3.hash(item, i) % self.size            if self.bit_array[digest] == 0:                return False        return True</code></pre><p>大体上，没有毛病。但是主观性太强，什么是主观性？就是ChatGPT其实不是站在需求者的视角来编写代码，而是站在自己的角度上，它没有考虑业务的上下文关系，也就是类和方法命名、方法参数、以及参数类型或者返回值以及类型，这些东西是否符合需求者当前的代码业务。</p><p>当然，这并不是ChatGPT的错，主要是输入的问题描述不够明确和详细，但如果每次都需要将代码业务逻辑转化为文字告诉ChatGPT，又有些画蛇添足，狗尾续貂之感。</p><h3 id="基于业务配置ChatGPT"><a href="#基于业务配置ChatGPT" class="headerlink" title="基于业务配置ChatGPT"></a><a href="about:blank#%E5%9F%BA%E4%BA%8E%E4%B8%9A%E5%8A%A1%E9%85%8D%E7%BD%AEChatGPT" title="基于业务配置ChatGPT"></a>基于业务配置ChatGPT</h3><p>那么怎样将ChatGPT融入业务代码？首先创建Openai接入函数：</p><pre><code>import openaiopenai.api_key = &quot;apikey&quot;def generate_code(func, docstring):    init_prompt = &quot;You are a Python expert who can implement the given function.&quot;    definition = f&quot;def &#123;func&#125;&quot;    prompt = f&quot;Read this incomplete Python code:\n```python\n&#123;definition&#125;\n```&quot;    prompt += &quot;\n&quot;    prompt += f&quot;Complete the Python code that follows this instruction: &#39;&#123;docstring&#125;&#39;. Your response must start with code block &#39;```python&#39;.&quot;    response = openai.ChatCompletion.create(        model=&quot;gpt-3.5-turbo&quot;,        temperature=0,        max_tokens=1024,        top_p=1,        messages=[            &#123;                &quot;role&quot;: &quot;system&quot;,                &quot;content&quot;: init_prompt,            &#125;,            &#123;                &quot;role&quot;: &quot;user&quot;,                &quot;content&quot;: prompt,            &#125;,        ],    )    codeblock = response.choices[0].message.content    code = next(filter(None, codeblock.split(&quot;```python&quot;))).rsplit(&quot;```&quot;, 1)[0]    code = code.strip()    return code</code></pre><p>诀窍就是提前设置好引导词：</p><pre><code>init_prompt = &quot;You are a Python expert who can implement the given function.&quot;    definition = f&quot;def &#123;func&#125;&quot;    prompt = f&quot;Read this incomplete Python code:\n```python\n&#123;definition&#125;\n```&quot;    prompt += &quot;\n&quot;    prompt += f&quot;Complete the Python code that follows this instruction: &#39;&#123;docstring&#125;&#39;. Your response must start with code block &#39;```python&#39;.&quot;</code></pre><p>这里我们提前设置两个参数func和docstring，也就是函数名和功能描述，要求ChatGPT严格按照参数的输入来返回代码，现在运行函数：</p><pre><code>if __name__ == &#39;__main__&#39;:    print(generate_code(&quot;test&quot;,&quot;Sum two numbers&quot;))</code></pre><p>程序返回：</p><pre><code>➜  chatgpt_write_code /opt/homebrew/bin/python3.10 &quot;/Users/gaolei/chatgpt_write_code/chatgpt_write_code.py&quot;def test(a, b):    return a + b</code></pre><p>如此一来，ChatGPT就不会返回废话，而是直接交给我们可以运行的代码。</p><h3 id="装饰器调用ChatGPT"><a href="#装饰器调用ChatGPT" class="headerlink" title="装饰器调用ChatGPT"></a><a href="about:blank#%E8%A3%85%E9%A5%B0%E5%99%A8%E8%B0%83%E7%94%A8ChatGPT" title="装饰器调用ChatGPT"></a>装饰器调用ChatGPT</h3><p>事实上，函数调用环节也可以省略，我们可以使用Python装饰器的闭包原理，直接将所定义函数的参数和描述传递给ChatGPT，随后再直接运行被装饰的函数，提高效率：</p><pre><code>import inspectfrom functools import wrapsdef chatgpt_code(func):    @wraps(func)    def wrapper(*args, **kwargs):        signature = f&#39;&#123;func.__name__&#125;(&#123;&quot;, &quot;.join(inspect.signature(func).parameters)&#125;):&#39;        docstring = func.__doc__.strip()        code = generate_code(signature, docstring)        print(f&quot;generated code:\n```python\n&#123;code&#125;\n```&quot;)        exec(code)        return locals()[func.__name__](*args, **kwargs)    return wrapper</code></pre><p>将方法定义好之后，使用基于ChatGPT的装饰器:</p><pre><code>if __name__ == &#39;__main__&#39;:    @chatgpt_code    def sum_two(num1,num2):        &quot;&quot;&quot;        Sum two numbers.        &quot;&quot;&quot;    print(sum_two(1,2))</code></pre><p>程序返回：</p><pre><code>➜  chatgpt_write_code /opt/homebrew/bin/python3.10 &quot;/Users/gaolei/chatgpt_write_code/chatgpt_write_code.py&quot;sum_two(num1, num2):generated code:def sum_two(num1, num2):    &quot;&quot;&quot;    Sum two numbers.    &quot;&quot;&quot;    return num1 + num2</code></pre><p>直接将业务逻辑和运行结果全部返回。</p><p>那么现在，回到开篇的关于布隆过滤器的问题：</p><pre><code>if __name__ == &#39;__main__&#39;:    @chatgpt_code    def bloom(target:str,storage:list):        &quot;&quot;&quot;        Use a Bloom filter to check if the target is in storage , Just use this func , no more class        &quot;&quot;&quot;    print(bloom(&quot;你好&quot;,[&quot;你好&quot;,&quot;Helloworld&quot;]))</code></pre><p>程序返回：</p><pre><code>➜  chatgpt_write_code /opt/homebrew/bin/python3.10 &quot;/Users/gaolei//chatgpt_write_code/chatgpt_write_code.py&quot;generated code:def bloom(target, storage):    # Initialize the Bloom filter with all zeros    bloom_filter = [0] * len(storage)    # Hash the target and set the corresponding bit in the Bloom filter to 1    for i in range(len(storage)):        if target in storage[i]:            bloom_filter[i] = 1    # Check if all the bits corresponding to the target are set to 1 in the Bloom filter    for i in range(len(storage)):        if target in storage[i] and bloom_filter[i] == 0:            return False    return TrueTrue➜  chatgpt_write_code</code></pre><p>丝滑流畅，和业务衔接得天衣无缝，拉链般重合，不需要挑挑拣拣，也不必复制粘贴。</p><h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a><a href="about:blank#%E7%BB%93%E8%AF%AD" title="结语"></a>结语</h3><p>毫无疑问，ChatGPT确然是神兵利器，吹毛可断，无坚不摧。但工具虽好，也需要看在谁的手里，所谓工具无高下，功力有高深，类比的话，如果倚天剑握在三岁孩童手中，不仅毫无增益，还可能伤其自身，但是握在峨眉掌门灭绝师太手里，那就可以横扫千军如卷席了，那才能体现大宗匠的手段</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> openai </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 人工智能 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>OpenAi.</title>
+      <link href="/blogs/2023/03/02/OpenAi/"/>
+      <url>/blogs/2023/03/02/OpenAi/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/openai.jpg" alt="cover"></p><h2 id="OpenAI库的SDK方式接入"><a href="#OpenAI库的SDK方式接入" class="headerlink" title="OpenAI库的SDK方式接入"></a><a href="about:blank#OpenAI%E5%BA%93%E7%9A%84SDK%E6%96%B9%E5%BC%8F%E6%8E%A5%E5%85%A5" title="OpenAI库的SDK方式接入"></a>OpenAI库的SDK方式接入</h2><p>OpenAI官方同步更新了接口Api的三方库openai，版本为0.27.0，如果要使用新的模型gpt-3.5-turbo，就必须同步安装最新版本：</p><pre><code>pip3 install openai==0.27.0</code></pre><p>随后建立chat.py文件：</p><pre><code>import openaiopenai.api_key = &quot;openai的接口apikey&quot; completion = openai.ChatCompletion.create(  model=&quot;gpt-3.5-turbo&quot;,   messages=[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;北国风光，千里冰封，万里雪飘，请接着续写，使用沁园春的词牌&quot;&#125;])print(completion[&quot;choices&quot;][0][&quot;message&quot;][&quot;content&quot;])</code></pre><p>程序返回：</p><pre><code>瑶池冰缘，雪舞凄美， 隔窗寒意，似乎钻进衣袖。寒塘渡鸭，雪中梅影， 孤独是一片银白的姿态。冰雪如花，开放在草莓园里， 可爱的雪人，瑟瑟发抖着欢呼。北风凛冽，寒暄难挡， 四季明媚，但冬日尤甜美。千里冰封，万里雪飘， 窗外天下壮观，此时正是京城美。</code></pre><p>闪电般秒回，让用惯了ChatGPT网页端的我们几乎不能适应。</p><p>gpt-3.5-turbo，对得起turbo的加成，带涡轮的ChatGPT就是不一样。</p><h2 id="ChatGPT聊天上下文"><a href="#ChatGPT聊天上下文" class="headerlink" title="ChatGPT聊天上下文"></a><a href="about:blank#ChatGPT%E8%81%8A%E5%A4%A9%E4%B8%8A%E4%B8%8B%E6%96%87" title="ChatGPT聊天上下文"></a>ChatGPT聊天上下文</h2><p>我们知道ChatGPT的最大特色就是可以联系语境中的上下文，换句话说，ChatGPT可以根据之前的回答来优化之后的回答，形成上下文关系，让人机对话更加连贯和富有逻辑性。</p><p>这里取决于输入参数中的role参数，每一个role的取值，对应的场景不一样，其中system用于在对话开始时给ChatGPT一个指示或声明，有点像引导词，使得后续的回答更具有个性化和专业化。user是用于给用户提问的或者说是用来给用户输入引导词的。assistant顾名思义，是用于输入ChatGPT的回答内容:</p><pre><code>import openaiopenai.api_key = &quot;apikey&quot; class ChatGPT:    def __init__(self,chat_list=[]) -&gt; None:        # 初始化对话列表        self.chat_list = []    # 显示接口返回    def show_conversation(self,msg_list):        for msg in msg_list:            if msg[&#39;role&#39;] == &#39;user&#39;:                print(f&quot;Me: &#123;msg[&#39;content&#39;]&#125;\n&quot;)            else:                print(f&quot;ChatGPT: &#123;msg[&#39;content&#39;]&#125;\n&quot;)    # 提示chatgpt    def ask(self,prompt):        self.chat_list.append(&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:prompt&#125;)        response = openai.ChatCompletion.create(model=&quot;gpt-3.5-turbo&quot;,messages=self.chat_list)        answer = response.choices[0].message[&#39;content&#39;]        # 添加历史对话，形成上下文关系        self.chat_list.append(&#123;&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:answer&#125;)        self.show_conversation(self.chat_list)</code></pre><p>这里每一次会话都会加入chat_list的聊天列表，角色为assistant，为了让ChatGPT分析上下文，下面开始测试：</p><pre><code>if __name__ == &#39;__main__&#39;:    chat = ChatGPT()    chat.ask(&quot;你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光&quot;)</code></pre><p>程序返回：</p><pre><code>Me: 你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光ChatGPT: 北国春光，清冽宜人。望眼欲穿的远山如翠起伏，遥远而缥缈。层层叠叠的林木，新绿徜徉，婆娑摇曳。风儿吹起，沁人心脾，点点梅花飘至，宛如仙境。花间蝶恋，春色满园。莺莺燕燕，鸟鸣花落，时时惹人遐思。碧空万里，蓝天白云，彩云飘飘，缤纷夺目。柳絮飘飘，轻羽翩翩，小河潺潺，流水声声，婉转动人。清风拂面，落英缤纷。听着草虫唱起，充满阳光的气息，轻轻飘荡，仿佛一条无形的小河，展开春天的美好，留下美好的记忆。人间万象，却只有这春色无边，似乎奔向远方的快乐。</code></pre><p>此时再次发问：</p><pre><code>chat.ask(&quot;请使用另外一种粗狂阳刚的风格再写一遍上面的词&quot;)</code></pre><p>程序返回：</p><pre><code>Me: 请使用另外一种粗狂阳刚的风格再写一遍上面的词ChatGPT: 北国春光，不柔不媚，金色的阳光照在地上，充满了男子气概。草原上风吹不断，那些疯狂的野花，在春风中舞蹈。看！那些猛禽静静地盘旋在高空，监视着整片草原，威武雄壮。花丛间，一只雄性蜂鹰跃跃欲飞，看上去仿佛要冲破天际。这里的春天有时带着风沙，但这并不能阻止狂放豪迈的草原奔腾前行，而这样的北国春光，怎会轻易被遗忘！</code></pre><p>虽然内容有些尬，但确实联系了上下文。</p><p>需要注意的是，token不仅计算ChatGPT的接口返回内容，也会计算用户的发送内容，token的计算方法不是简单的一词一个，例如中文输入，一个中文汉字占2个字节数，而对于一次中文测试中，50个汉字被算为100个tokens，差不多是英文的一倍，而token还计算api发送中的角色字段，如果像上文一样实现上下文操作，就必须发送ChatGPT接口返回的历史聊天列表，这意味着ChatGPT上下文聊天的成本并不是我们想象中的那么低，需要谨慎使用。</p><h2 id="原生ChatGPT接口异步访问"><a href="#原生ChatGPT接口异步访问" class="headerlink" title="原生ChatGPT接口异步访问"></a><a href="about:blank#%E5%8E%9F%E7%94%9FChatGPT%E6%8E%A5%E5%8F%A3%E5%BC%82%E6%AD%A5%E8%AE%BF%E9%97%AE" title="原生ChatGPT接口异步访问"></a>原生ChatGPT接口异步访问</h2><p>除了官方的SDK，新接口模型也支持原生的Http请求方式，比如使用requests库：</p><pre><code>pip3 install requests</code></pre><p>直接请求openai官方接口：</p><pre><code>import requestsh = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: &#39;Bearer apikey&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;r = requests.post(url=u, headers=h, json=d).json()print(r)</code></pre><p>程序返回：</p><pre><code>&#123;&#39;id&#39;: &#39;chatcmpl-6qDNQ9O4hZPDT1Ju902coxypjO0mY&#39;, &#39;object&#39;: &#39;chat.completion&#39;, &#39;created&#39;: 1677902496, &#39;model&#39;: &#39;gpt-3.5-turbo-0301&#39;, &#39;usage&#39;: &#123;&#39;prompt_tokens&#39;: 20, &#39;completion_tokens&#39;: 100, &#39;total_tokens&#39;: 120&#125;, &#39;choices&#39;: [&#123;&#39;message&#39;: &#123;&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;\n\n同步请求和异步请求是指在客户端向服务器发送请求时，客户端等待服务器响应的方式不同。\n\n同步请求是指客户端发送请求后，必须等待服务器响应后才能继续执行后续的代码。在等待服务器响应的过程中，客户端的界面会被阻塞，用户无法进行&#39;&#125;, &#39;finish_reason&#39;: &#39;length&#39;, &#39;index&#39;: 0&#125;]&#125;</code></pre><p>ChatGPT原生接口也支持异步方式请求，这里使用httpx:</p><pre><code>pip3 install httpx</code></pre><p>编写异步请求：</p><pre><code>h = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: &#39;Bearer apikey&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;import asyncioimport httpxasync def main():    async with httpx.AsyncClient() as client:        resp = await client.post(url=u, headers=h, json=d)        result = resp.json()        print(result)asyncio.run(main())</code></pre><p>程序返回:</p><pre><code>&#123;&#39;id&#39;: &#39;chatcmpl-6qDNQ9O4hZPDT1Ju902coxypjO0mY&#39;, &#39;object&#39;: &#39;chat.completion&#39;, &#39;created&#39;: 1677902496, &#39;model&#39;: &#39;gpt-3.5-turbo-0301&#39;, &#39;usage&#39;: &#123;&#39;prompt_tokens&#39;: 20, &#39;completion_tokens&#39;: 100, &#39;total_tokens&#39;: 120&#125;, &#39;choices&#39;: [&#123;&#39;message&#39;: &#123;&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;\n\n同步请求和异步请求是指在客户端向服务器发送请求时，客户端等待服务器响应的方式不同。\n\n同步请求是指客户端发送请求后，必须等待服务器响应后才能继续执行后续的代码。在等待服务器响应的过程中，客户端的界面会被阻塞，用户无法进行&#39;&#125;, &#39;finish_reason&#39;: &#39;length&#39;, &#39;index&#39;: 0&#125;]&#125;</code></pre><p>我们也可以将异步请求方式封装到对话类中，完整代码：</p><pre><code>import openaiimport asyncioimport httpxopenai.api_key = &quot;apikey&quot; h = &#123;    &#39;Content-Type&#39;: &#39;application/json&#39;,    &#39;Authorization&#39;: f&#39;Bearer &#123;openai.api_key&#125;&#39;&#125;d = &#123;    &quot;model&quot;: &quot;gpt-3.5-turbo&quot;,    &quot;messages&quot;:[&#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;请解释同步请求和异步请求的区别&quot;&#125;],    &quot;max_tokens&quot;: 100,    &quot;temperature&quot;: 0&#125;u = &#39;https://api.openai.com/v1/chat/completions&#39;class ChatGPT:    def __init__(self,chat_list=[]) -&gt; None:        # 初始化对话列表        self.chat_list = []    # 异步访问    async def ask_async(self,prompt):        d[&quot;messages&quot;][0][&quot;content&quot;] = prompt        async with httpx.AsyncClient() as client:            resp = await client.post(url=u, headers=h, json=d)            result = resp.json()            print(result)    # 显示接口返回    def show_conversation(self,msg_list):        for msg in msg_list:            if msg[&#39;role&#39;] == &#39;user&#39;:                print(f&quot;Me: &#123;msg[&#39;content&#39;]&#125;\n&quot;)            else:                print(f&quot;ChatGPT: &#123;msg[&#39;content&#39;]&#125;\n&quot;)    # 提示chatgpt    def ask(self,prompt):        self.chat_list.append(&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:prompt&#125;)        response = openai.ChatCompletion.create(model=&quot;gpt-3.5-turbo&quot;,messages=self.chat_list)        answer = response.choices[0].message[&#39;content&#39;]        # 添加历史对话，形成上下文关系        self.chat_list.append(&#123;&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:answer&#125;)        self.show_conversation(self.chat_list)if __name__ == &#39;__main__&#39;:    chat = ChatGPT()    chat.ask(&quot;你是一位南宋词人，词风婉约，有点类似李清照女士，请使用蝶恋花词牌描写北国春光&quot;)    chat.ask(&quot;请使用另外一种粗狂阳刚的风格再写一遍上面的词&quot;)    asyncio.run(chat.ask_async(&quot;请解释同步请求接口和异步请求接口的区别&quot;))</code></pre><h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a><a href="about:blank#%E7%BB%93%E8%AF%AD" title="结语"></a>结语</h2><p>低成本ChatGPT接口模型gpt-3.5-turbo更容易接入三方的客户端，比如微信、QQ、钉钉群之类，比起ChatGPT网页端，ChatGPT接口的响应速度更加迅速且稳定，ChatGPT，永远的神，没有之一，且不可替代，最后奉上异步上下文封装项目，与君共觞：github.com/zcxey2911/chatgpt_api_Contextual_async</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> openai </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 人工智能 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>GoLang的Hugo配合nginx来打造属于自己的纯静态博客系.</title>
+      <link href="/blogs/2022/05/23/id-22-05/"/>
+      <url>/blogs/2022/05/23/id-22-05/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/goblog.png" alt="cover"><br>Go lang无疑是目前的当红炸子鸡，极大地提高了后端编程的效率，同时有着极高的性能。借助Go语言我们 可以用同步的方式写出高并发的服务端软件，同时，Go语言也是云原生第一语言，Docker，Kubernetes等等著名的项目都是使用Go语言实现的。</p><p>Hugo 是基于 Go 语言的静态网站生成器。</p><p>什么是静态网站生成器？顾名思义，就是以最快的速度生成一个高可用的web页面，我们知道Django作为一款非常流行的框架被广泛应用，但是部署起来实在是太麻烦了，各种命令各种配置，动态页面必然要涉及数据库的配置和操作，另外只要涉及数据库操作，你就不得不考虑sql注入等一系列的安全因素。而纯静态页面则没有这个烦恼，如果我们只需要一个简单的站点，一些简单的功能和页面，比如博客，我们只想以极简的方式用markdown语法写下文字或者代码，让服务器访问纯静态页面，这就是静态网站生成器可以提供给我们的好处。</p><p>为啥选择Hugo?</p><p>Hugo是一种go语言编写的静态网站生成器。适用于搭建个人blog、公司主页、help等网站，是一种小型的CMS系统。静态站点的好处就是快速、安全、易于部署，方便管理。</p><p>Hugo的优点包含但不限于：</p><pre><code>世界上最快的静态网站生成工具，5秒生成6000个页面文档为Markdown格式,语法超简单Hugo 可以做静态文件生成工具，还是高性能web 服务；丰富的站点迁移工具，可以将wordpress，Ghost，Jekyll，DokuWiki，Blogger轻松迁移至 Hugo超详细的文档活跃的社区更加自由的内容组织方式丰富的主题模板，可以让你的网站更加炫目多彩</code></pre><p>多环境支持：macos ，linux，windows</p><p>首先，可以去go的官网网站下载安装包 <a href="https://golang.org/dl/">https://golang.org/dl/</a> 然后直接双击安装即可，不需要配置环境变量，因为安装过程自动配置，安装完毕后，打开命令行，输入</p><pre><code>go version</code></pre><p>显示主版本号即表示安装成功</p><p>然后，可以进行hugo的在线源码编译安装，打开命令行，输入下面的命令</p><pre><code>go get -u -v github.com/spf13/hugogo build -o hugo main.gomv hugo $GOPATH/bin</code></pre><p>如果你不想在线编译安装，也可以去hugo的官网 <a href="https://github.com/gohugoio/hugo/releases">https://github.com/gohugoio/hugo/releases</a> 下载稳定版的压缩包，解压之后配置一下环境变量也可以</p><p>装完以后，在命令行内输入</p><pre><code>hugo version</code></pre><p>打印出版本号即表示hugo安装成功</p><p>在命令行中输入命令</p><pre><code>hugo new site hugo_blog</code></pre><p>就生成了一个名字为hugo_blog的新站点，可以感受到速度非常快，和vue.js创建新站点的速度比起来简直天差地别</p><p>打开配置文件config.toml，这是hugo的站点的相关配置，可以进行一些个性化的定制，改为下面这样：</p><pre><code>baseURL = &quot;/&quot;languageCode = &quot;en-us&quot;title = &quot;我的博客&quot;#指定主题theme = &quot;hyde&quot;[params]#博客简介description = &quot;这里是刘悦的个人博客&quot;#博客主题颜色themeColor = &quot;theme-base-08&quot;</code></pre><p>可以看到我们制定了一个主题hyde，添加了Theme后的站点才有血有肉，丰富多彩。</p><p>更多的主题可以在这个上面下载，都是免费而开源的：<a href="https://themes.gohugo.io/">https://themes.gohugo.io/</a></p><p>进入到站点内的themes目录，输入命令下载hyde主题，hugo有很多漂亮的主题可以选择</p><pre><code>git clone https://github.com/spf13/hyde.git</code></pre><p>结构和样式有了，我们还没有内容。我们来创建站点的第一篇文章</p><p>输入命令</p><pre><code>hugo new one.md</code></pre><p>hugo在content下创建one.md文件，我们编写一些文件内容：</p><pre><code>---date: &quot;2019-05-23&quot;title: &quot;第一篇文章&quot;---### 你好啊123123123print(&#39;hello world&#39;)</code></pre><p>然后在命令行中输入</p><pre><code>hugo server</code></pre><p>然后访问本地：1313 端口</p><p>至此，非常快速而简单博客已经做好了，那么如何部署到线上呢？非常简单输入命令进行打包操作：</p><pre><code>hugo --baseUrl=&quot;/&quot;</code></pre><p>hugo就会把你的站点生成纯静态页面，然后打包到public文件夹</p><p>将public上传到阿里云服务器的root目录下</p><p>修改nginx配置文件</p><pre><code>vim /etc/nginx/conf.d/default.conf</code></pre><p>监听80端口，并且项目目录指定/root/public</p><pre><code>server &#123;    listen       80;    server_name  localhost;    access_log      /root/md_vue_access.log;    error_log       /root/md_vue_error.log;    client_max_body_size 75M;    location / &#123;        root /root/public;        index index.html;    &#125;    error_log    /root/md_vue/error.log    error;&#125;</code></pre><p>重启nginx systemctl restart nginx.service 然后访问博客就搭建好了</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> golang </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> golang </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>通过堡垒机/跳板机实现文件在服务器之间的互传</title>
+      <link href="/blogs/2022/04/22/id-22-04/"/>
+      <url>/blogs/2022/04/22/id-22-04/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/scrapy.png" alt="cover"></p><p>Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。</p><p>而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。</p><p>说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬</p><p>首先分别在主机和从机上安装需要的爬虫库</p><pre><code>pip3 install requests scrapy scrapy-redis redis</code></pre><p>在主机中安装redis</p><pre><code>#安装redisyum install redis启动服务systemctl start redis查看版本号redis-cli --version设置开机启动systemctl enable redis.service</code></pre><p>修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口</p><pre><code>#bind 127.0.0.1protected-mode no</code></pre><p>改完配置后，别忘了重启服务才能生效</p><pre><code>systemctl restart redis</code></pre><p>然后分别新建爬虫项目</p><pre><code>scrapy startproject myspider</code></pre><p>在项目的spiders目录下新建test.py</p><pre><code>#导包import scrapyimport osfrom scrapy_redis.spiders import RedisSpider#定义抓取类#class Test(scrapy.Spider):class Test(RedisSpider):    #定义爬虫名称，和命令行运行时的名称吻合    name = &quot;test&quot;    #定义redis的key    redis_key = &#39;test:start_urls&#39;    #定义头部信息    haders = &#123;        &#39;User-Agent&#39;: &#39;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36&#39;    &#125;    def parse(self, response):        print(response.url)        pass</code></pre><p>然后修改配置文件settings.py，增加下面的配置,其中redis地址就是在主机中配置好的redis地址:</p><pre><code>BOT_NAME = &#39;myspider&#39;SPIDER_MODULES = [&#39;myspider.spiders&#39;]NEWSPIDER_MODULE = &#39;myspider.spiders&#39;#设置中文编码FEED_EXPORT_ENCODING = &#39;utf-8&#39;# scrapy-redis 主机地址REDIS_URL = &#39;redis://root@39.106.228.179:6379&#39;#队列调度SCHEDULER = &quot;scrapy_redis.scheduler.Scheduler&quot;#不清除缓存SCHEDULER_PERSIST = True#通过redis去重DUPEFILTER_CLASS = &quot;scrapy_redis.dupefilter.RFPDupeFilter&quot;#不遵循robotsROBOTSTXT_OBEY = False</code></pre><p>最后，可以在两台主机上分别启动scrapy服务</p><pre><code>scrapy crawl test</code></pre><p>此时，服务已经起来了，只不过redis队列中没有任务，在等待状态</p><p>进入主机的redis</p><pre><code>redis-cli</code></pre><p>将任务队列push进redis</p><pre><code>lpush test:start_urls http://baidu.comlpush test:start_urls http://chouti.com</code></pre><p>两台服务器的爬虫服务分别领取了队列中的任务进行抓取，同时利用redis的特性，url不会重复抓取</p><p>爬取任务结束之后，可以通过flushdb命令来清除地址指纹，这样就可以再次抓取历史地址了。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> nginx </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>通过堡垒机/跳板机实现文件在服务器之间的互传</title>
+      <link href="/blogs/2021/05/03/drawboard/"/>
+      <url>/blogs/2021/05/03/drawboard/</url>
+      
+        <content type="html"><![CDATA[<h3 id="通过堡垒机-跳板机实现文件在服务器之间的互传"><a href="#通过堡垒机-跳板机实现文件在服务器之间的互传" class="headerlink" title="通过堡垒机/跳板机实现文件在服务器之间的互传"></a><a href="about:blank#%E9%80%9A%E8%BF%87%E5%A0%A1%E5%9E%92%E6%9C%BA-%E8%B7%B3%E6%9D%BF%E6%9C%BA%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E5%9C%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B9%8B%E9%97%B4%E7%9A%84%E4%BA%92%E4%BC%A0" title="通过堡垒机/跳板机实现文件在服务器之间的互传"></a>通过堡垒机/跳板机实现文件在服务器之间的互传</h3><p>今日任务:从本地上传到测试服务器，再放到生产环境下运行代码</p><h5 id="一、堡垒机"><a href="#一、堡垒机" class="headerlink" title="一、堡垒机"></a><a href="about:blank#%E4%B8%80%E3%80%81%E5%A0%A1%E5%9E%92%E6%9C%BA" title="一、堡垒机"></a>一、堡垒机</h5><p>堡垒机也叫跳板机。</p><p>日常开发中，有时候需要连接远程服务器。为了安全性等方面考虑，连接远程服务器之前，需要先连接堡垒机。</p><p>如图:</p><p><img src="/blogs/images/apifist.png"></p><h5 id="二、-SCP语法"><a href="#二、-SCP语法" class="headerlink" title="二、 SCP语法"></a><a href="about:blank#%E4%BA%8C%E3%80%81-SCP%E8%AF%AD%E6%B3%95" title="二、 SCP语法"></a>二、 SCP语法</h5><pre><code>scp [-1246BCpqrv] [-c cipher] [-F ssh_config] [-i identity_file][-l limit] [-o ssh_option] [-P port] [-S program][[user@]host1:]file1 [...] [[user@]host2:]file2</code></pre><h5 id="三、服务器之间的文件传输"><a href="#三、服务器之间的文件传输" class="headerlink" title="三、服务器之间的文件传输"></a><a href="about:blank#%E4%B8%89%E3%80%81%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B9%8B%E9%97%B4%E7%9A%84%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93" title="三、服务器之间的文件传输"></a>三、服务器之间的文件传输</h5><p>scp {目标文件} {堡垒机用户名}@{堡垒机地址}:{堡垒机上放置文件的目录}</p><p>常用命令:</p><p>-r： 递归复制整个目录.</p><p>-P: prot注意P是大写，port是指定数据传输用到的端口号</p><p>四、互传方法</p><p>如果有一台正常带有密码的机器推送到一台堡垒机上时。</p><p>普通的用法是无法实现传输的！！！！！</p><pre><code>scp -r root@服务器地址:/目录   .(当前文件下)</code></pre><p>注意:使用时务必看好文件目录是否正确！</p><h5 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a><a href="about:blank#%E4%BA%94%E3%80%81%E6%80%BB%E7%BB%93" title="五、总结"></a>五、总结</h5><p>scp命令是很好用的，用在我们服务器与服务器之间的传输文件，这样减少你去COPY啦！！！</p><p>注意事项记住就好，语法规则不是很难，大家看看吧！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> nginx </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>工单项目</title>
+      <link href="/blogs/2021/03/28/%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE/"/>
+      <url>/blogs/2021/03/28/%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"><br>一、工单项目理解<br>工单系统拥有用户，先实现用户登录、修改用户权限姓名等…然后进行工单的添加，审核人和私信聊天</p><p>二、用户的创建</p><p>model.py:</p><pre><code class="js">class Base(models.Model):    # 创建时间    create_time = models.DateTimeField(default=timezone.now, null=True)    class Meta:        abstract = True# 用户类class User(Base):    username = models.CharField(max_length=100, unique=True,verbose_name=&#39;用户名&#39;)    password = models.CharField(max_length=200,verbose_name=&#39;密码&#39;)    phone = models.CharField(max_length=100, unique=True, null=True,verbose_name=&#39;电话&#39;)    level = models.IntegerField(default=1,verbose_name=&#39;用户等级&#39;)    sf = models.BooleanField(default=False,verbose_name=&#39;三方登录&#39;)    sf_type = models.CharField(max_length=20, verbose_name=&quot;三方类型&quot;, null=True)    sf_id = models.IntegerField(null=True,verbose_name=&#39;三方登录id&#39;)    class Meta:        db_table = &quot;user&quot;</code></pre><p>实现用户名怎删改查</p><pre><code class="js">class GendertUUid(APIView):    def get(self, request):        &quot;&quot;&quot;        返回验证码图片        :param request:        :return:        &quot;&quot;&quot;        #  uuid        uuid = request.GET.get(&#39;id&#39;)        # 生成随机数        random_num = random_str()        # 生成图片        image = make_verify_image(random_num, uuid)        # 返回图片        return HttpResponse(image, content_type=&#39;image/jpeg&#39;)class Refresh(APIView):    def post(self, request):        username = request.data.get(&#39;username&#39;)        password = request.data.get(&#39;password&#39;)        phone = request.data.get(&#39;phone&#39;)        # 用户输入的验证码        crossing = request.data.get(&#39;crossing&#39;)        print(crossing)        # uuid        uuid = request.data.get(&#39;uuid&#39;)        # redis存储的验证码        redis_uuid = str(r.get(uuid))        print(redis_uuid)        # 验证手机号        user_phone = User.objects.filter(phone=phone).first()        if user_phone:            return Response(&#123;&#39;msg&#39;: &#39;手机号已被绑定,请重新输入!&#39;, &#39;code&#39;: 10006&#125;)        #  验证用户名不能为空        if username == &#39;&#39;:            return Response(&#123;&#39;msg&#39;: &#39;用户名不能为空!&#39;, &#39;code&#39;: 10004&#125;)        #  正则验证手机号格式        new_phone = re.match(&#39;^1[3-9]&#123;1&#125;[0-9]&#123;9&#125;$&#39;, phone)        if new_phone:            pass        else:            return Response(&#123;&#39;msg&#39;: &#39;手机号格式不符合!&#39;, &#39;code&#39;: 10005&#125;)        # 与redis的验证码作比较        if crossing == redis_uuid:            user = User.objects.filter(username=username).first()            #  验证用户名是否重复            if user:                return Response(&#123;&#39;msg&#39;: &#39;用户名重复,请重新输入!&#39;, &#39;code&#39;: 10002&#125;)            else:                #  注册                User.objects.create(                    username=username,                    password=password,                    phone=phone                )                return Response(&#123;&#39;msg&#39;: &#39;注册成功!&#39;, &#39;code&#39;: 10000&#125;)        else:            return Response(&#123;&#39;msg&#39;: &#39;验证码输入错误,请重新输入!&#39;, &#39;code&#39;: 10001&#125;)class SelectUser(APIView):    def get(self, request):        username = request.GET.get(&#39;username&#39;)        if username:            queryset = User.objects.filter(username=username)            ser = UserSer1(queryset, many=True)            return Response(ser.data)        else:            queryset = User.objects.all()            ser = UserSer1(queryset, many=True)            return Response(ser.data)    def delete(self, request):        id = request.GET.get(&#39;id&#39;)        if id:            User.objects.filter(id=id).delete()            return Response(&#123;&#39;msg&#39;: &#39;删除成功&#39;&#125;)        else:            return Response(&#123;&#39;msg&#39;: &#39;没有该id&#39;&#125;)class PutUser(APIView):    def put(self, request):        username = request.data.get(&#39;username&#39;)        new_username = request.data.get(&#39;new_username&#39;, username)        password = request.data.get(&#39;password&#39;)        phone = request.data.get(&#39;phone&#39;)        data = putUser(username, new_username, password, phone)        print(data)        return Response(data)    </code></pre><p>实现登录输入错误5次不允许登录</p><pre><code class="js">class LoginUser(APIView):    def post(self, request):        username = request.data.get(&#39;username&#39;)        password = request.data.get(&#39;password&#39;)        user = User.objects.filter(username=username, password=password).first()        if user:            #  实现状态保持            payload = &#123;                &#39;exp&#39;: datetime.datetime.utcnow() + datetime.timedelta(hours=10),                &#39;uid&#39;: user.id,            &#125;            token = jwt.encode(payload=payload, key=SECRET_KEY)            return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 10000, &#39;token&#39;: token, &#39;uid&#39;: user.id, &#39;username&#39;: user.username&#125;)        else:            key = &#39;user_%s&#39; % username            key_black = &#39;user_black&#39;            # 只要黑名单有该用户直接封杀            if r.get(key_black) == key:                return Response(&#123;&#39;msg&#39;: &#39;您的账号已经被封禁1分钟!&#39;, &#39;code&#39;: 44444&#125;)            else:                # 判断用户是否存在                if r.keys(key):                    #  五分钟内出现五次以上                    if int(r.get(key)) &gt;= 5:                        r.set(key, 0)  # 清除该用户次数                        r.set(key_black, key)  # 清除同时加入黑名单                        r.expire(key_black, 60)  # 并且设置封禁时间                        return Response(&#123;&#39;msg&#39;: &#39;您的账号已经被封禁1分钟!&#39;, &#39;code&#39;: 44444&#125;)                    # 小于五次次数 做累加                    else:                        r.incrby(key, 1)                        return Response(&#123;&#39;msg&#39;: &#39;账号或密码输入错,请重新输入!&#39;, &#39;code&#39;: 10004&#125;)                # 不存在则存取                else:                    r.set(key, 1)                    r.expire(key, 30)                    return Response(&#123;&#39;msg&#39;: &#39;账号或密码输入错,请重新输入!&#39;, &#39;code&#39;: 10004&#125;)</code></pre><p>实现三方登录 钉钉、gitee</p><pre><code class="js">class GiteeBack(APIView):    def get(self, request):        code = request.GET.get(&quot;code&quot;, None)        r = requests.post(            &quot;https://gitee.com/oauth/token?grant_type=authorization_code&amp;code=&quot; + code + &quot;&amp;client_id=&quot; + CLIENT_ID + &quot;&amp;redirect_uri=http://127.0.0.1:8000/gitee_back&amp;client_secret=&quot; + CLIENT_SECRET)        # print(r.text)        mess = eval(r.text)        # print(type(mess))        # print(mess[&#39;access_token&#39;])        r = requests.get(&quot;https://gitee.com/api/v5/user?access_token=&quot; + mess[&#39;access_token&#39;])        print(r.text)        res = json.loads(r.text)        user = User.objects.filter(sf_type=&#39;0b001&#39;, sf_id=res[&#39;id&#39;]).first()        if user:            user.username = res[&#39;name&#39;]            user.save()        else:            User.objects.create(username=res[&#39;name&#39;], sf_type=&#39;0b001&#39;, sf_id=res[&#39;id&#39;], password=res[&#39;name&#39;],                                sf=True)        return redirect(&#39;http://127.0.0.1:8080/#/?username=&#123;&#125;&#39;.format(res[&#39;name&#39;]))import hmacimport base64from hashlib import sha256import urllibclass DingBack(View):    def get(self, request):        # 获取code        code = request.GET.get(&quot;code&quot;)        t = time.time()        # 时间戳        timestamp = str((int(round(t * 1000))))        appSecret = APP_SECRET        # 构造签名        signature = base64.b64encode(            hmac.new(appSecret.encode(&#39;utf-8&#39;), timestamp.encode(&#39;utf-8&#39;), digestmod=sha256).digest())        # 请求接口，换取钉钉用户名        payload = &#123;&#39;tmp_auth_code&#39;: code&#125;        headers = &#123;&#39;Content-Type&#39;: &#39;application/json&#39;&#125;        res = requests.post(&#39;https://oapi.dingtalk.com/sns/getuserinfo_bycode?signature=&#39; + urllib.parse.quote(            signature.decode(&quot;utf-8&quot;)) + &quot;&amp;timestamp=&quot; + timestamp + &quot;&amp;accessKey=dingoausbsbnopkbfhhqvt&quot;,                            data=json.dumps(payload), headers=headers)        res_dict = json.loads(res.text)[&#39;user_info&#39;]        print(res_dict[&#39;nick&#39;])        user = User.objects.filter(sf_type=&#39;0b010&#39;, username=res_dict[&#39;nick&#39;]).first()        if user:            user.username = res_dict[&#39;nick&#39;]            user.save()        else:            User.objects.create(username=res_dict[&#39;nick&#39;], sf_type=&#39;0b010&#39;, password=res_dict[&#39;nick&#39;], sf=True)            return redirect(&#39;http://127.0.0.1:8080/#/?username=&#123;&#125;&#39;.format(res_dict[&#39;nick&#39;]))</code></pre><p>添加查询工单名称(利用递归)</p><pre><code class="js">def ca(pid):    # 查询工单里所有与当前审批人对于的数据    queryset = Gongdan.objects.filter(pid=pid)    data = GongdanSer(queryset, many=True).data    # 定义新列表    lis = []    # 循环查询到的数据    for i in data:        # 利用递归无线查询id        i[&#39;x&#39;] = ca(i[&#39;id&#39;])        # 添加到列表中        lis.append(i)    # 返回列表    return lisclass GongdanView(APIView):    def post(self, request):        name = request.data.get(&#39;name&#39;)        pid = request.data.get(&#39;pid&#39;)        # 当前审批人是否存在        if pid:            Gongdan.objects.create(name=name, pid=pid)        else:            Gongdan.objects.create(name=name)        return Response(&#123;&#39;msg&#39;: &#39;添加成功&#39;&#125;)    def get(self, request):        # 查询工单所有数据        queryset = Gongdan.objects.all()        all = GongdanSer(queryset, many=True).data        return Response(&#123;&quot;next&quot;: ca(0), &#39;all&#39;: all&#125;)</code></pre><p>添加查询工单详情并给审核人发送消息</p><pre><code class="js">class QingJiaView(APIView):    def get(self, request):        pid = request.GET.get(&#39;pid&#39;)        # 查询当前审核人的数据        query = Moban.objects(pid=pid).first()        # 返回mb去接收前段数据，mbs为已有的数据        return Response(&#123;&#39;mb&#39;: eval(query.geshi), &#39;mbs&#39;: eval(query.geshi)&#125;)    def put(self, request):  # 添加        pid = request.data.get(&#39;pid&#39;)        geshi = request.data.get(&#39;geshi&#39;)        # 模板添加当前审核人和格式数据        Moban.objects.create(pid=pid, geshi=geshi)        return Response(&#39;ok&#39;)    def post(self, request):  # 修改        uid = request.data.get(&#39;uid&#39;)        # 获取所有审核人        Approved_list = request.data.get(&#39;Approved_list&#39;)        # 判断所有审核人类型如果为int则转换成列表字符串形式        # if type(eval(Approved_list)) == int:        #     Approved_list = str([Approved_list])        qiniuimg = request.data.get(&#39;qiniuimg&#39;)        info = request.data.get(&#39;info&#39;)        data = QinjiaMoban.objects.create(uid=uid, pid=eval(Approved_list)[0], Approved_list=str(Approved_list),                                          info=str(info), qiniuimg=qiniuimg)        App = eval(Approved_list)        text = &#39;您收到了一条审核工单&#39;        if type(App[0]) == list:            for i in App[0]:                Qingjia_gl.objects.create(gid=data.id, pid=i)                r.hset(&#39;user&#123;&#125;&#39;.format(i), &#39;message%s&#39; % data.id,                       str(&#123;&#39;id&#39;:data.id,&quot;text&quot;: text,  &quot;uid&quot;: i, &quot;read&quot;: 0, &quot;withdraw&quot;: 0,&#39;img&#39;:qiniuimg&#125;))        else:            Qingjia_gl.objects.create(gid=data.id, pid=App[0])            r.hset(&#39;user&#123;&#125;&#39;.format(App[0]), &#39;message%s&#39; % data.id,                   str(&#123;&#39;id&#39;:data.id,&quot;text&quot;: text, &quot;uid&quot;: App[0], &quot;read&quot;: 0, &quot;withdraw&quot;: 0,&#39;img&#39;:qiniuimg&#125;))        cli = MongoClient()        db = cli[&#39;text&#39;]        tbl = db[&#39;text&#39;]        # 过期删除数据库120s        tbl.create_index([(&#39;updated&#39;,int(data.id))], expireAfterSeconds=20)        tbl.insert_one(&#123;&#39;id&#39;: int(data.id), &#39;updated&#39;: datetime.datetime.utcnow()&#125;)  # 将数据存入mongo数据库        return Response(&#123;&#39;data&#39;: &#39;ok&#39;&#125;)</code></pre><p>分装添加工单的并审和串审</p><pre><code class="js">class Factory:    def __init__(self, gid, start):        self.qingjia = QinjiaMoban.objects.filter(id=gid)        self.qingjia_info = self.qingjia.first()        self.pid = eval(self.qingjia_info.pid)        # 关联外键gid        self.gid = gid        # 状态        self.start = start    # 串审    def Chuan(self, start):        # 判断状态不是拒绝时        if start != 2:            # 清空当前申请信息            Qingjia_gl.objects.filter(gid=self.gid).delete()            # 新建申请信息            Qingjia_gl.objects.create(gid=self.gid, pid=self.pid)            self.qingjia.update(pid=str(self.pid), start=3)        else:            # 清空当前申请信息            Qingjia_gl.objects.filter(gid=self.gid).delete()            Qingjia_gl.objects.create(gid=self.gid, pid=self.pid)            self.qingjia.update(pid=str(self.pid), start=2)    # 并审    def Bing(self, start):        if start != 2:            # 清空当前申请信息            Qingjia_gl.objects.filter(gid=self.gid).delete()            for i in self.pid:                # 新建申请信息                Qingjia_gl.objects.create(gid=self.gid, pid=i)            self.qingjia.update(pid=self.pid, start=3)        else:            # 清空当前申请信息            Qingjia_gl.objects.filter(gid=self.gid).delete()            for i in self.pid:                # 新建申请信息                Qingjia_gl.objects.create(gid=self.gid, pid=i)            self.qingjia.update(pid=self.pid, start=2)    def Zs(self):        # 执行审批逻辑        # 根据值获取下标        next_index = eval(self.qingjia_info.Approved_list).index(self.pid)        # 判断状态不是拒绝时        if self.start != 2:            # 审核人列表下标加1            next_index += 1            # 如果审核人为最后一个人的时候同意修改pid为None状态为同意            if next_index == len(eval(self.qingjia_info.Approved_list)):                self.qingjia.update(pid=None, start=1)                Qingjia_gl.objects.filter(gid=self.gid).delete()                # 结束判断                return            # 根据获取的下标获取值            next_pid = eval(self.qingjia_info.Approved_list)[next_index]            print(&#39;pid&#39;, next_pid)            # 修改当前审核人为获取的下标值            self.qingjia.update(pid=next_pid, start=3)            self.pid = next_pid            if type(next_pid) == list:                self.Bing(self.start)            else:                self.Chuan(self.start)        else:            if next_index == 0:                self.qingjia.update(pid=None, start=2)                Qingjia_gl.objects.filter(gid=self.qingjia_info.id).delete()                return            next_index -= 1            next_pid = eval(self.qingjia_info.Approved_list)[next_index]            self.qingjia.update(pid=next_pid, start=3)            self.pid = next_pid            if type(next_pid) == list:                self.Bing(self.start)            else:                self.Chuan(self.start)</code></pre><p>显示请假展示等…(分装、不分装)</p><pre><code class="js">class QingjiaZhanshi(APIView):    def get(self, request):        uid = request.GET.get(&#39;uid&#39;)        # 获取请假模板uid对应的数据        queryset = QinjiaMoban.objects.filter(uid=uid)        # 字典返回值        zs = &#123;0: &#39;未审批&#39;, 1: &#39;审批通过&#39;, 2: &#39;审批未通过&#39;, 3: &#39;审批中&#39;&#125;        data = []        for i in queryset:            # 查询User表返回username            user_info = User.objects.get(id=i.uid)            js = &#123;&#125;            # 申请人            js[&#39;username&#39;] = user_info.username            # 审批人列表            js[&#39;Approved_list&#39;] = []            # 状态是否审批            js[&#39;start&#39;] = zs[i.start]            # 凭证图片            js[&#39;qiniuimg&#39;] = i.qiniuimg            # 对应请假日期原因等            js[&#39;info&#39;] = eval(i.info)            # 循环查询数据中的审批人列表            for j in eval(i.Approved_list):                # 如果审批人的类型为list                if type(j) == list:                    # 审批人展示                    js[&#39;Approved_list&#39;].append(                        [User.objects.get(id=k).username for k in j]                    )                else:                    js[&#39;Approved_list&#39;].append(User.objects.get(id=j).username)            # 如果当然审批人存在            if i.pid:                e_pid = eval(i.pid)                # 如果当然审批人的类型为list                if type(e_pid) == list:                    # 当前审批人姓名添加列表                    js[&#39;pid_name&#39;] = [User.objects.get(id=k).username for k in e_pid]                # 如果类型不为list                else:                    # 当前单个审批人添加列表                    js[&#39;pid_name&#39;] = User.objects.get(id=e_pid).username                # 根据值查询下标赋值                js[&#39;f_index&#39;] = js[&#39;Approved_list&#39;].index(js[&#39;pid_name&#39;])            else:                js[&#39;f_index&#39;] = None            # 如果状态为审批未通过            if i.start == 2:                # 拒绝原因修改赋值                js[&#39;refuse&#39;] = i.refuse            else:                # 否则为None                js[&#39;refuse&#39;] = None            # 循环的数据添加到列表            data.append(js)        return Response(data)    def put(self, request):        # 获取请假模板的id查询        id = request.data.get(&#39;id&#39;)        # 审批为通过拒绝1为通过2为拒绝        start = request.data.get(&#39;start&#39;)        # 审批拒绝原因        refuse = request.data.get(&#39;refuse&#39;, None)        # 查询请假模板对应id的数据        qingjia = QinjiaMoban.objects.filter(id=id)        # qingjia_info = qingjia.first()        # 如果拒绝原因存在        if refuse:            # 则修改拒绝原因            qingjia.update(refuse=refuse)        ccs = Factory(gid=id, start=start)        ccs.Zs()        # 如果状态不为拒绝(2)        # if start != 2:        #     # 赋值pid转换类型        #     pid = eval(qingjia_info.pid)        #     # a_list定义的列表转换Approved_list为list的类型        #     a_list = eval(qingjia_info.Approved_list)        #     # 当前下标的下标+1为当前审核人的下标        #     next_index = a_list.index(pid) + 1        #     # 如果当前下标+1后的长度等于最后一个值的时候        #     if next_index == len(a_list):        #         # 修改状态为审核通过        #         qingjia.update(start=1)        #         # 当前审核人为空        #         qingjia.update(pid=None)        #     else:        #         # 如果不为最后一个值的时候状态为正在审核中        #         qingjia.update(start=3)        #         # 修改pid的值为当前审核人的下标        #         qingjia.update(pid=a_list[next_index])        # else:        #     pid = qingjia_info.pid        #     # 赋值a_list为转换为后的审核人列表(list)        #     a_list = eval(qingjia_info.Approved_list)        #     # pid_index当前审核人下标        #     pid_index = a_list.index(eval(pid))        #     # 如果下标为0拒绝        #     if pid_index == 0:        #         # 赋值pid为空        #         qingjia.update(pid=None)        #         # 状态为审核未通过        #         qingjia.update(start=2)        #     else:        #         # 如果下标不为0拒绝则回退下标减1        #         qingjia.update(pid=a_list[pid_index - 1])        #         # 修改状态为审核中        #         qingjia.update(start=3)        return Response(&#123;&#39;msg&#39;: &#39;审批完成&#39;&#125;)    def post(self, request):        pid = request.data.get(&#39;pid&#39;)        query = Qingjia_gl.objects.filter(pid=pid)        for i in query:            print(i.gid)        data = [QingJiaInfoSer(i.gid) for i in query]        Qingjia_gl.objects.filter(pid=pid, read=False).update(read=True)        # # 获取当前审核人pid        # pid = request.data.get(&#39;pid&#39;)        # # 获取全部数据        # query = QinjiaMoban.objects.all()        # # 定义空列表        # data = []        # zs = &#123;0: &#39;未审批&#39;, 1: &#39;审批通过&#39;, 2: &#39;审批未通过&#39;,3: &#39;审批中&#39;&#125;        # # 循环query数据        # for i in query:        #     # 如果当前审核人存在        #     if i.pid:        #         # 转换赋值        #         i_pid = eval(i.pid)        #     else:        #         #跳过当前循环继续下一次循环        #         continue        #     # 如果赋值的pid类型为list        #     if type(i_pid)==list:        #         #又如果pid在在列表中        #         if not pid in eval(i.pid):        #             # 跳过当前循环继续下一次循环        #             continue        #     # if not i.pid == i_pid:        #     #     continue        #     # 查询User表返回username        #     user_info = User.objects.get(id=i.uid)        #     js = &#123;&#125;        #     js[&#39;id&#39;] = i.id        #     js[&#39;name&#39;] = user_info.username        #     js[&#39;start&#39;] = zs[i.start]        #     js[&#39;info&#39;] = eval(i.info)        #        #     data.append(js)        return Response(data)</code></pre><p>实现消息的互通展示等…</p><pre><code class="js">class MessageView(APIView):    def get(self, request):        uid = request.GET.get(&#39;uid&#39;)        zt = &#123;0: &#39;未读&#39;, 1: &#39;已读&#39;&#125;        # 获取未读数据数量        query = Cate.objects.filter(pid=uid).order_by(&#39;create&#39;)        ids_0 = []        ids_1 = []        for i in query:            if i.uid not in ids_0 and i.uid not in ids_1:                if i.read == 0:                    ids_0.append(i.uid)                else:                    ids_1.append(i.uid)        user_info_list = []        for i in ids_0:            js = &#123;&#125;            user = User.objects.get(id=i)            js[&#39;username&#39;] = user.username            js[&#39;id&#39;] = user.id            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))            user_info_list.append(js)        for i in ids_1:            js = &#123;&#125;            user = User.objects.get(id=i)            js[&#39;username&#39;] = user.username            js[&#39;id&#39;] = user.id            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))            user_info_list.append(js)        count = Cate.objects.filter(pid=uid, read=False)        return Response(&#123;&#39;count&#39;: len(count), &#39;info&#39;: user_info_list&#125;)    def post(self,request):        pass    def put(self, request):        uid = request.data.get(&#39;uid&#39;)        pid = request.data.get(&#39;pid&#39;)        Cate.objects.filter(pid=uid, uid=pid).update(read=True)        return Response(&#39;ok&#39;)from qiniu import Authfrom my.settings import AccessKey, SecretKeydef qiniu_token():    # 定义密钥    qn = Auth(&#39;c6WPZAJYWKjtl-A0d9lnx0NeHpXtVUnPFKPM1er5&#39;, &#39;fVGVpKAjM2PHUaEoQ5EnDcO6krasp95rRGFJMrFZ&#39;)    # 指定上传空间, 返回token值    token = qn.upload_token(&#39;sbzjj&#39;)    return tokenfrom django.views import Viewfrom django.http import JsonResponseclass UpTokenView(View):    def get(self, request):        return JsonResponse(&#123;&#39;token&#39;: qiniu_token()&#125;)class CateView(APIView):    def get(self, request):        uid = request.GET.get(&#39;uid&#39;)        c = r.hgetall(&#39;user&#123;&#125;&#39;.format(uid))        reads = &#123;0:&#39;未读&#39;,1:&#39;已读&#39;&#125;        list1 = []        length = 0        for key, values in c.items():            i = eval(values)            i[&#39;read&#39;] = reads[i[&#39;read&#39;]]            list1.append(i)            if i[&#39;read&#39;] == &#39;未读&#39;:                length += 1        return Response(&#123;&#39;message&#39;: list1, &#39;count&#39;: length&#125;)    def put(self, request):        uid = request.GET.get(&#39;uid&#39;)        c = r.hgetall(&#39;user&#123;&#125;&#39;.format(uid))        for key, values in c.items():            i = eval(values)            r.hset(&#39;user%s&#39; % uid, key, str(&#123;&#39;id&#39;:i[&#39;id&#39;],&quot;text&quot;: i[&#39;text&#39;], &quot;img&quot;: i[&#39;img&#39;], &quot;uid&quot;: i[&#39;uid&#39;], &quot;read&quot;: 1, &quot;withdraw&quot;: 0&#125;))        return Response(&#123;&#39;msg&#39;:&#39;ok&#39;&#125;)    def post(self, request):        cid = request.data.get(&#39;cid&#39;)        uid = request.data.get(&#39;uid&#39;)        c = r.hgetall(&#39;user&#123;&#125;&#39;.format(uid))        cli = MongoClient()        db = cli[&#39;text&#39;]        tbl = db[&#39;text&#39;]        for key, values in c.items():            i = eval(values)            zs=tbl.find(&#123;&#39;id&#39;:cid&#125;)            print(zs)            if tbl in zs:                if cid == i[&#39;id&#39;]:                    r.hset(&#39;user%s&#39; % uid, key, str(&#123;&#39;id&#39;:i[&#39;id&#39;],&quot;text&quot;: i[&#39;text&#39;], &quot;img&quot;: i[&#39;img&#39;], &quot;uid&quot;: i[&#39;uid&#39;], &quot;read&quot;: i[&#39;read&#39;], &quot;withdraw&quot;: 1&#125;))                    return Response(&#123;&#39;msg&#39;: &#39;已撤回&#39;&#125;)            else:                return Response(&#123;&#39;msg&#39;: &#39;超过2分钟无法撤回&#39;&#125;)class ChatView(APIView):    def post(self, request):        uid = request.data.get(&#39;uid&#39;)        pid = request.data.get(&#39;pid&#39;)        text = request.data.get(&#39;text&#39;)        img = request.data.get(&#39;img&#39;)        info = Cate.objects.create(uid=uid, pid=pid, text=text,img=img)        r.set(&#39;&#123;&#125;chexiao&#39;.format(info.id), &#39;hh&#39;, ex=120)        return Response(&#123;&#39;msg&#39;:&#39;ok&#39;&#125;)    def get(self, request):        uid = request.GET.get(&#39;uid&#39;)        # 获取未读数据数量        query = Cate.objects.filter(pid=uid).order_by(&#39;create&#39;)        ids_0 = []        ids_1 = []        for i in query:            if i.uid not in ids_0 and i.uid not in ids_1:                if i.read == 0:                    ids_0.append(i.uid)                else:                    ids_1.append(i.uid)        user_info_list = []        for i in ids_0:            js = &#123;&#125;            user = User.objects.get(id=i)            js[&#39;username&#39;] = user.username            js[&#39;id&#39;] = user.id            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))            user_info_list.append(js)        for i in ids_1:            js = &#123;&#125;            user = User.objects.get(id=i)            js[&#39;username&#39;] = user.username            js[&#39;id&#39;] = user.id            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))            user_info_list.append(js)        count = Cate.objects.filter(pid=uid, read=False)        return Response(&#123;&#39;count&#39;: len(count), &#39;info&#39;: user_info_list&#125;)    def put(self,request):        uid = request.data.get(&#39;uid&#39;)        pid = request.data.get(&#39;pid&#39;)        Cate.objects.filter(pid=uid, uid=pid).update(read=1)        return Response(&#39;ok&#39;)    def delete(self, request):        id = request.GET.get(&#39;id&#39;)        r = redis.Redis(decode_responses=True)        yz = r.get(&#39;&#123;&#125;chexiao&#39;.format(id))        if yz:            Cate.objects.get(id=id).delete()            return Response(&#123;&#39;code&#39;: &#39;200&#39;&#125;)        return Response(&#123;&#39;code&#39;: &#39;400&#39;&#125;)</code></pre><p>最后使用websocket实现代码的展示</p><pre><code class="js"># 导入websocket装饰器@accept_websocketdef msg_websocket(request, pid, uid):    if request.is_websocket():        while True:            # 刷新间隔为1秒            time.sleep(1)            msg_query = Cate.objects.filter(uid=pid, pid=uid)            to_msg_query = Cate.objects.filter(uid=uid, pid=pid)            data = []            for i in msg_query:                js = &#123;&#125;                js[&#39;id&#39;] = i.id                js[&#39;text&#39;] = i.text                js[&#39;uid&#39;] = i.uid                js[&#39;create&#39;] = i.create                js[&#39;img&#39;] = i.img                # print(i.img)                data.append(js)            for i in to_msg_query:                js = &#123;&#125;                js[&#39;id&#39;] = i.id                js[&#39;text&#39;] = i.text                js[&#39;uid&#39;] = i.uid                js[&#39;create&#39;] = i.create                js[&#39;img&#39;] = i.img                # print(i.img)                data.append(js)            data = sorted(data, key=lambda x: x[&#39;create&#39;])            for i in data:                del i[&#39;create&#39;]            request.websocket.send(json.dumps(&#123;&#39;data&#39;:data&#125;))</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python&amp;vue </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 工单项目 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Celery</title>
+      <link href="/blogs/2021/03/21/Celery/"/>
+      <url>/blogs/2021/03/21/Celery/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/tree.png" alt="cover"><br>一、安装celery<br>    pip install celery</p><p>二、创建一个任务文件task.py</p><pre><code class="js">from celery.task import task# 自定义要执行的task任务@taskdef print_test():    print(&quot;gaolei&quot;)    return &#39;hello celery&#39;</code></pre><p>三、配置settings.py文件</p><pre><code class="js">CELERY_BROKER_URL = &#39;redis://localhost:6379/&#39;CELERY_RESULT_BACKEND = &#39;redis://localhost:6379/&#39;CELERY_RESULT_SERIALIZER = &#39;json&#39;</code></pre><p>四、在settings.py同级目录创建celery.py</p><pre><code class="js">from __future__ import absolute_import, unicode_literalsimport osfrom celery import Celery# 设置环境变量os.environ.setdefault(&#39;DJANGO_SETTINGS_MODULE&#39;, &#39;mydjango.settings&#39;)# 注册Celery的APPapp = Celery(&#39;mydjango&#39;)# 绑定配置文件app.config_from_object(&#39;django.conf:settings&#39;, namespace=&#39;CELERY&#39;)# 自动发现各个app下的tasks.py文件app.autodiscover_tasks()</code></pre><p>五、修改settings.py同级目录的init.py文件</p><pre><code class="js">from __future__ import absolute_import, unicode_literalsfrom .celery import app as celery_app#导包import pymysql#初始化pymysql.install_as_MySQLdb()__all__ = [&#39;celery_app&#39;]</code></pre><p>六、通过view进行在线调用</p><pre><code class="js">from user import tasksdef ctest(request,*args,**kwargs):    res=tasks.print_test.delay()    #任务逻辑    return JsonResponse(&#123;&#39;status&#39;:&#39;successful&#39;,&#39;task_id&#39;:res.task_id&#125;)</code></pre><p>七、在manage.py的目录下启动celery服务</p><pre><code>celery worker -A mydjango -l info -P eventlet</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Celery来实现异步任务队列以及定时任务 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>七牛云文件上传</title>
+      <link href="/blogs/2021/03/10/%E4%B8%83%E7%89%9B%E4%BA%91%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/"/>
+      <url>/blogs/2021/03/10/%E4%B8%83%E7%89%9B%E4%BA%91%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/tree.png" alt="cover"></p><h2 id="七牛云存储"><a href="#七牛云存储" class="headerlink" title="七牛云存储"></a>七牛云存储</h2><h3 id="准备工作："><a href="#准备工作：" class="headerlink" title="准备工作："></a>准备工作：</h3><p>1、到七牛官网：<a href="https://www.qiniu.com/%E3%80%82%E5%88%9B%E5%BB%BA%E8%B4%A6%E5%8F%B7%E3%80%82%E7%84%B6%E5%90%8E%E5%88%B0%E4%B8%AA%E4%BA%BA%E9%9D%A2%E6%9D%BF-&gt;%E7%A7%98%E9%92%A5%E7%AE%A1%E7%90%86%E5%A4%84%E8%8E%B7%E5%8F%96access_key%E5%92%8Csecret_key%E3%80%82">https://www.qiniu.com/。创建账号。然后到个人面板-&gt;秘钥管理处获取access_key和secret_key。</a> </p><p>2、创建空间，可以选择华北区等。 </p><h4 id="一、安装包"><a href="#一、安装包" class="headerlink" title="一、安装包"></a>一、安装包</h4><pre><code>pip install qiniu</code></pre><h4 id="二、后端"><a href="#二、后端" class="headerlink" title="二、后端"></a>二、后端</h4><p>1、 创建一个获取token的url</p><pre><code class="js">--------上传AccessKey和SecretKey---------from qiniu import Authfrom .settings import AccessKey,SecretKeydef qiniu_token():    # 定义密钥    qn = Auth(AccessKey, SecretKey)    # 指定上传空间, 返回token值    token = qn.upload_token(&#39;sbzjj&#39;)    return token</code></pre><pre><code class="js">from django.views import Viewfrom django.http import JsonResponseclass UpTokenView(View):    def get(self, request):        return JsonResponse(&#123;&#39;token&#39;: qiniu_token()&#125;)</code></pre><p>二、前段</p><pre><code class="js">    &lt;template&gt;  &lt;div&gt;      &lt;p style=&quot;text-align: center;&quot;&gt;&lt;input type=&quot;file&quot; @change=&quot;upload_qiniu&quot;&gt;&lt;/p&gt;          &lt;p v-if=&quot;img_url&quot; style=&quot;text-align: center;&quot;&gt;&lt;img :src=&quot;img_url&quot; alt=&quot;&quot; style=&quot;width: 200px; height: 200px; border-radius:50%;&quot;&gt;&lt;/p&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;  data () &#123;    return &#123;          img_url: &#39;&#39;,          // 七牛去上传凭证          uptoken: &#39;&#39;,    &#125;;  &#125;,  methods: &#123;         // 获取uptoken    get_uptoken() &#123;        this.$axios.get(&#39;uptoken/&#39;).then(res=&gt;&#123;            this.uptoken = res.data.token        &#125;)    &#125;,    // 七牛云上传    upload_qiniu(e) &#123;        // 获取文件对象        let file = e.target.files[0]        // 声明参数        let form_data = new FormData()        // 将上传凭证添加参数        form_data.append(&#39;token&#39;, this.uptoken)        // 添加图片        form_data.append(&#39;file&#39;, file)        // 定制化axios  不携带cookie上传        const axios_qiniu = this.$axios.create(&#123;withCredentials:false&#125;)        // 发送请求        axios_qiniu(&#123;            method: &#39;post&#39;,            url: &#39;http://up-z1.qiniu.com/&#39;,            data: form_data,            tiemout: 30000,        &#125;).then(res=&gt;&#123;            console.log(res)            this.img_url = &#39;http://qq5jf6dzd.hb-bkt.clouddn.com/&#39; + res.data.key        &#125;)    &#125;  &#125;,  mounted()&#123;    this.get_uptoken()  &#125;,&#125;&lt;/script&gt;&lt;style&gt;&lt;/style&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 七牛云文件上传 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>docker操作 容器、镜像 dockerfile</title>
+      <link href="/blogs/2021/02/06/day13/"/>
+      <url>/blogs/2021/02/06/day13/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/lake.png" alt="cover"></p><h4 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h4><p>虚拟化操作:把一个操作系统分成多个操作系统</p><p>vmware:过于庞大，太过于慢，但是确实安装出来的虚拟机：<strong>隔离性很好</strong><br>docker：更快，更轻巧，但是隔离性不好</p><h4 id="二、docker安装-CentOS7"><a href="#二、docker安装-CentOS7" class="headerlink" title="二、docker安装-CentOS7"></a>二、docker安装-CentOS7</h4><p>安装必要的⼀些系统⼯具</p><pre><code class="js">yum install -y yum-utils device-mapper-persistent-data lvm2</code></pre><p>添加软件源信息</p><pre><code class="js">yum-config-manager --add-repo https://mirrors.aliyun.com/dockerce/linux/centos/docker-ce.repo</code></pre><p>更新并安装Docker-CE</p><pre><code class="js">yum makecache fast yum -y install docker-ce</code></pre><p>开启Docker服务</p><pre><code class="js">service docker start</code></pre><h4 id="二、下载镜像"><a href="#二、下载镜像" class="headerlink" title="二、下载镜像"></a>二、下载镜像</h4><p>下载镜像</p><pre><code class="js">docker pull alpine</code></pre><p>查看所有镜像</p><pre><code class="js">docker images</code></pre><p>启动容器：docker run</p><pre><code class="js">docker run -d -i -t 镜像id /bin/bash</code></pre><p>查看所有运行着的容器：docker ps<br>先进入容器进行配置，配置有关webssh连接的事项</p><pre><code class="js">docker attach 镜像id</code></pre><p>安装ssh</p><pre><code class="js">yum install openssh-server</code></pre><p>生成当前主机的ssh-key</p><pre><code class="js">ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_keyssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_keyssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -Nssh-keygen -t dsa -f /etc/ssh/ssh_host_ed25519_key</code></pre><p>在容器里启动ssh服务，让外界可以连接</p><pre><code class="js">/usr/sbin/sshd</code></pre><h4 id="三、Dockerfile"><a href="#三、Dockerfile" class="headerlink" title="三、Dockerfile"></a>三、Dockerfile</h4><p>镜像的定制实际上就是定制每一层所添加的配置、文件。如果我们可以把每一层修改、安装、构建、操作的命令都写入一个脚本，用这个脚本来构建、定制镜像，那么无法重复的问题、镜像构建透明性的问题、体积的问题就都会解决。这个脚本就是 Dockerfile。</p><p>在一个空白目录中，建立一个文本文件，并命名为 Dockerfile ：</p><pre><code class="js"> mkdir mynginx cd mynginx touch Dockerfile</code></pre><p>构建dockerfile</p><pre><code class="js">docker build -t nginx:v3...</code></pre><p>docker build 命令进行镜像构建</p><pre><code class="js">docker build [选项] /home/tools/dockerfile</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> docker </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> docker操作 容器、镜像 dockerfile </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>直播</title>
+      <link href="/blogs/2021/02/05/day12/"/>
+      <url>/blogs/2021/02/05/day12/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h4 id="一、直播简介"><a href="#一、直播简介" class="headerlink" title="一、直播简介"></a>一、直播简介</h4><p> 直播分为：现场直播和观看直播，现场直播称为推流，观看直播称为拉流，一套流程走下去就可完成直播</p><h4 id="二、搭建HTTP-Flv协议"><a href="#二、搭建HTTP-Flv协议" class="headerlink" title="二、搭建HTTP-Flv协议"></a>二、搭建HTTP-Flv协议</h4><h5 id="在云主键进行部署环境"><a href="#在云主键进行部署环境" class="headerlink" title="在云主键进行部署环境"></a>在云主键进行部署环境</h5><p>创建保存的目录</p><pre><code class="js">mkdir /usr/local/nginx-flv# 创建了一个安装目录mkdir /home/flv-tools# 存储所需软件</code></pre><p>下载所需文件</p><pre><code class="js">wget https://nginx.org/download/nginx-1.18.0.tar.gz</code></pre><p>下载直播模块</p><pre><code class="js">git clone https://github.com/winshining/nginx-http-flv-module</code></pre><p>解压nginx和直播模块</p><pre><code class="js">tar -zxvf nginx-1.18.0.tar.gz nginx-1.18.0/unzip nginx-http-flv-module.zip</code></pre><p>进入nginx目录下进行配置</p><pre><code class="js">cd nginx-1.18.0# --prefix: 配置安装路径#--add-module: 添加安装插件./configure --prefix=/usr/local/nginx-flv --add-module=/home/flv-tools/nginx-http-flv-module-master</code></pre><p>编译及安装</p><pre><code class="js">make make install # 或者使用make &amp;&amp; make install </code></pre><h4 id="三、配置文件修改"><a href="#三、配置文件修改" class="headerlink" title="三、配置文件修改"></a>三、配置文件修改</h4><pre><code class="js">vim /usr/local/nginx-flv/conf/nginx.confworker_processes  1;rtmp_auto_push on;rtmp_auto_push_reconnect 1s;rtmp_socket_dir /tmp;rtmp&#123;    out_queue 4096;    out_cork 8;    max_streams 128;    timeout 15s;    drop_idle_publisher 15s;    log_interval 5s;    log_size 1m;    server &#123;        listen 1935; # 推流端口        server_name zege;        application live &#123;    # 配置推流地址            live on; # 打开推流            # gop_cache on;            # rtmp://123.123.123.123:1935/live/test        &#125;    &#125;&#125;events &#123;    worker_connections  1024;&#125;</code></pre><p>配置文件http拉流部分</p><pre><code class="js">http &#123;    include       mime.types;    default_type  application/octet-stream;    sendfile        on;    keepalive_timeout  65;    server &#123;        listen       8080; # 拉流通过8080去拉流        # http://123.123.123.123:8080/live/?port=1935&amp;stream=test        server_name  localhost;        location /live &#123;            flv_live on;            chunked_transfer_encoding  on;            add_header &#39;Access-Control-Allow-Origin&#39; &#39;*&#39;;            add_header &#39;Access-Control-Allow-Credentials&#39; &#39;true&#39;;        &#125;    &#125;&#125;</code></pre><p>·关闭旧有服务</p><pre><code class="js">/usr/local/nginx-rtmp/sbin/nginx -s stop/usr/local/nginx-rtmp/sbin/nginx -s reload# 重启</code></pre><p>开启新服务</p><pre><code class="js">/usr/local/nginx-flv/sbin/nginx -c /usr/local/nginx-flv/conf/nginx.conf</code></pre><h4 id="四、打开OBS进行推流配置"><a href="#四、打开OBS进行推流配置" class="headerlink" title="四、打开OBS进行推流配置"></a>四、打开OBS进行推流配置</h4><p>推流地址为:rtmp://39.106.221.128:22/live/123</p><h4 id="五、打开VLC进行拉流"><a href="#五、打开VLC进行拉流" class="headerlink" title="五、打开VLC进行拉流"></a>五、打开VLC进行拉流</h4><p>拉流地址为:<a href="http://39.106.221.128:22/live?port=1935&amp;app=live&amp;stream=123">http://39.106.221.128:22/live?port=1935&amp;app=live&amp;stream=123</a></p><h4 id="六、Vue实现拉流"><a href="#六、Vue实现拉流" class="headerlink" title="六、Vue实现拉流"></a>六、Vue实现拉流</h4><p>安装<strong>flv.js</strong>开源工具，进行拉流</p><pre><code class="js">cnpm install flv.js --save</code></pre><p>导包</p><pre><code class="js">import flv from &#39;flv.js&#39;</code></pre><p>构建页面标签，播放标签</p><pre><code class="js">&lt;video id=&quot;videoElement&quot; controls muted&gt;      Your browser is too old which doesn&#39;t support HTML5 video.&lt;/video&gt;</code></pre><p>进行初始化</p><pre><code class="js"> mounted() &#123;    var videoElement = document.getElementById(&#39;videoElement&#39;);    var flvPlayer = flv.createPlayer(&#123;      type: &#39;flv&#39;,      enableWorker: true,     //浏览器端开启flv.js的worker,多进程运行flv.js      isLive: true,           //直播模式      hasAudio: false,        //关闭音频      hasVideo: true,      // cors: true,      stashInitialSize: 128,      enableStashBuffer: false, //播放flv时，设置是否启用播放缓存，只在直播起作用。      // url: &#39;http://192.168.2.234/flv/323223618780001&#39;      // url: &#39;http://39.105.79.238:8080/live?port=1935&amp;app=live&amp;stream=test&#39;      url: &#39;http://47.93.48.154:8080/live?port=1935&amp;app=live&amp;stream=test&#39;    &#125;)    flvPlayer.attachMediaElement(videoElement);    flvPlayer.load();    flvPlayer.play();&#125;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 直播 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>无限极自关联</title>
+      <link href="/blogs/2021/02/04/day11/"/>
+      <url>/blogs/2021/02/04/day11/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h4 id="一、什么是无限极自关联"><a href="#一、什么是无限极自关联" class="headerlink" title="一、什么是无限极自关联"></a>一、什么是无限极自关联</h4><p>无限极分类其实就是一棵树，所有的节点作为一个存储元素。每个节点可以有任意个孩子节点，且只有一个父节点。</p><h4 id="二、后端部署"><a href="#二、后端部署" class="headerlink" title="二、后端部署"></a>二、后端部署</h4><h5 id="models-py"><a href="#models-py" class="headerlink" title="models.py"></a>models.py</h5><pre><code class="js">class Admin(models.Model):    name = models.CharField(max_leng=20)     uid = models.ForeignKey(to=&#39;self&#39;, on_delete=models.SETNULL, default=None) # 自关联</code></pre><h5 id="serializers-py"><a href="#serializers-py" class="headerlink" title="serializers.py"></a>serializers.py</h5><pre><code class="js">class AdminSer(ModelSerializer):    class Meta:        model = Path        fields = &#39;__all__&#39;</code></pre><h5 id="views-py"><a href="#views-py" class="headerlink" title="views.py"></a>views.py</h5><pre><code class="js"># 无限自关联递归函数def function(id):    # 接收id 查询结果集    query = User.objects.filter(uid=id)    # 进行序列化    admin = UserSer(query, many=True).data    # 在序列化结果中添加空列表    admin[&#39;list&#39;] = []    # 遍历结果集，递归调用并将调用结果存入上级列表    for i in admin:        admin[&#39;list&#39;].append(functions(i.uid))    # 返回结果集    return adminclass Admin(APIView):    def get(self, request):        # 定义列表        admin_list = []        # 查取所有信息        admin = Path.objects.all()        # 遍历开始递归查询        for i in admin:            admin_list.append(function(i.id))            retrun Response(admin_list)</code></pre><h4 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h4><p>   部署一个父节点，可以有多个子节点的加入，然后进行遍历数据，关联自己进行查询，最后进行添加</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 无极限自关联 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>webshell</title>
+      <link href="/blogs/2021/02/03/day10/"/>
+      <url>/blogs/2021/02/03/day10/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h4 id="一、什么是webshell"><a href="#一、什么是webshell" class="headerlink" title="一、什么是webshell"></a>一、什么是webshell</h4><p>webshell是指在web服务器上的一个脚本程序，通过这个脚本程序可以上传下载文件、查看数据库信息以及调用一些系统命令等。Webshell 获取网站服务器的权限(shell)。</p><h4 id="二、webshell原理"><a href="#二、webshell原理" class="headerlink" title="二、webshell原理"></a>二、webshell原理</h4><p>本地可以通过远程连接的方式和网站的webshell建立连接，本地发送命令后，网站的shell脚本就会去执行此命令，从而达到管理网站的效果。</p><h4 id="三、webshell的分类有哪些？"><a href="#三、webshell的分类有哪些？" class="headerlink" title="三、webshell的分类有哪些？"></a>三、webshell的分类有哪些？</h4><pre><code>大马，小马，一句话木马等。</code></pre><p>小马：</p><pre><code>体积小、功能少、一般他只有文件上传功能</code></pre><p>大马:</p><pre><code>体积大、功能齐全、能够管理数据库、文件管理、对站点进行快速的信息收集，甚至能够提权。</code></pre><p>一句话木马:</p><pre><code>短小精悍、功能强大、隐蔽性好、使用客户端可以快速管理webshell</code></pre><h4 id="四、webshell的隐蔽性"><a href="#四、webshell的隐蔽性" class="headerlink" title="四、webshell的隐蔽性"></a>四、webshell的隐蔽性</h4><p>有些恶意网页脚本可以嵌套在正常网页中运行，且不容易被查杀。</p><p>webshell可以穿越服务器防火墙，由于与被控制的服务器或远程主机交换的数据都是通过80端口传递的，因此不会被防火墙拦截。并且使用webshell一般不会在系统日志中留下记录，只会在网站的web日志中留下一些数据提交记录，没有经验的管理员是很难看出入侵痕迹的。</p><h4 id="五、后端部分"><a href="#五、后端部分" class="headerlink" title="五、后端部分"></a>五、后端部分</h4><p>进行导包</p><pre><code class="js">from dwebsocket import accept_websocketimport timeimport paramikofrom threading import Thread</code></pre><h5 id="views-py配置"><a href="#views-py配置" class="headerlink" title="views.py配置"></a>views.py配置</h5><p>进行连接函数</p><pre><code class="js">def make_ssh(host=&quot;127.0.0.1&quot;, username=&quot;root&quot;, password=&quot;123456&quot;):    &quot;&quot;&quot;    :host 主机地址    :username 用户名，一般是root    :password 密码    :port ssh协议的端口,22    &quot;&quot;&quot;    # 初始化一个ssh对象    sh = paramiko.SSHClient()    # 设置对象连接密钥规则    sh.set_missing_host_key_policy(paramiko.AutoAddPolicy())    # 连接    sh.connect(host, username=username, password=password, port=22)    # 生成shell对象    channle = sh.invoke_shell(term=&#39;xterm&#39;)    return channle</code></pre><p>接收函数</p><pre><code class="js">def recv_ssh_msg(channle, ws):    &#39;&#39;&#39;        只管接收    &#39;&#39;&#39;    # 判断shell连接对象是否没有退出    while not channle.exit_status_ready():        # 接收过程可能会因为没有任何返回而报错        try:            buf = channle.recv(1024)  # 接收命令的执行结果            ws.send(buf)  # 向Websocket通道返回        # 接收不到会报错，但是报错没关系，继续重新尝试接受        except:            break</code></pre><p>连接视图函数</p><pre><code class="js">@accept_websocketdef webssh(request):    if request.is_websocket:        # 1. 获取到连接对象        ws = request.websocket        # 2. 初始化linux连接        channel = make_ssh()        # 3. 初始化linux数据接收线程，并开启        recv_thread = Thread(target=recv_ssh_msg, args=(channel, ws))        recv_thread.start()        while 1:  # 主线程: 只管发送            # 2. 阻塞ws接收发来的数据            cmd = ws.wait()            # cmd = ws.recv()            if cmd:                channel.send(cmd)  # 发送到linux 去执行            else:  # 如果连接断开，那么cmd将会发一个空包                break        recv_thread.join()  # 回收子线程        ws.close()  # 关闭ws连接</code></pre><h3 id="六、前端部分"><a href="#六、前端部分" class="headerlink" title="六、前端部分"></a>六、前端部分</h3><p>在vue中导入插件</p><pre><code class="js">import * as attach from &#39;xterm/lib/addons/attach/attach&#39; // 安装插件适，可以使用attach去添加import * as fit from &#39;xterm/lib/addons/fit/fit&#39; // fit进行自适应大小的import &#123; Terminal &#125; from &#39;xterm&#39;Terminal.applyAddon(attach) // 添加插件Terminal.applyAddon(fit) // 添加插件</code></pre><p>初始化黑窗口对象</p><pre><code class="js">&lt;template&gt;&lt;div id=&quot;terminal&quot;&gt;    &lt;!--黑色窗口--&gt;&lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;  data() &#123;    return &#123;    &#125;  &#125;,mounted() &#123;        // 获取到了div标签        let terminalContainer = document.getElementById(&#39;terminal&#39;)        // 初始化黑窗口对象        this.term = new Terminal(this.terminal)        // 打开这个对象        this.term.open(terminalContainer)        new WebSocket(&#39;ws://127.0.0.1:8000/webssh/&#39;)        this.terminalSocket = new WebSocket(&#39;ws://127.0.0.1:8000/webssh/&#39;)        this.terminalSocket.onopen = function()&#123; // 连接成功触发该方法            console.log(&#39;websocket is Connected...&#39;)        &#125;        this.terminalSocket.onclose = function()&#123; // 连接关闭适触发的方法            console.log(&#39;websocket is Closed...&#39;)        &#125;        this.terminalSocket.onerror = function()&#123; // 连接出错触发的方法            console.log(&#39;damn Websocket is broken!&#39;)        &#125;        this.term.attach(this.terminalSocket)    &#125;&lt;/script&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> webshell </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>redis键空间事件</title>
+      <link href="/blogs/2021/02/01/day09/"/>
+      <url>/blogs/2021/02/01/day09/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="Redis键空间介绍"><a href="#Redis键空间介绍" class="headerlink" title="Redis键空间介绍"></a>Redis键空间介绍</h2><p>使用场景:</p><p>在购物项目中，如果完成提交订单而没有支付成功的状态时，redis会在规定的时间内删除订单，redis保存订单后，设置过期时间，时间过后数据删除</p><p>促销活动结束之后，促销活动开始之前设置redis,到期删除，通过回调函数拿到key, 执行回调库存脚本</p><h4 id="一、开启键空间通知"><a href="#一、开启键空间通知" class="headerlink" title="一、开启键空间通知"></a>一、开启键空间通知</h4><p>在cmd窗口，默认键空间通知是关闭的,需要在终端开启</p><pre><code>redis-cli config set notify-keyspace-events KEAok</code></pre><p>key值可能让事件被启用</p><table><thead><tr><th align="center">字符</th><th align="left">发送的通知</th></tr></thead><tbody><tr><td align="center">K</td><td align="left">键空间通知，所有通知以__keyspace@<db>__为前缀</td></tr><tr><td align="center">E</td><td align="left">键空间通知，所有通知以__keyevent@<db>__为前缀</td></tr><tr><td align="center">g</td><td align="left">DEL、EXPIRE、RENAME等类型无关的通用命令通知</td></tr><tr><td align="center">$</td><td align="left">字符串命令通知</td></tr><tr><td align="center">l</td><td align="left">列表命令通知</td></tr><tr><td align="center">s</td><td align="left">结合命令通知</td></tr><tr><td align="center">h</td><td align="left">哈希命令通知</td></tr><tr><td align="center">z</td><td align="left">有序集合命令通知</td></tr><tr><td align="center">x</td><td align="left">过期事件:每当有过期键被删除时发送</td></tr><tr><td align="center">e</td><td align="left">驱逐(evict)事件:每当有键因为maxmemory政策而被删除时发送</td></tr><tr><td align="center">A</td><td align="left">参数g$lshzxe的别名</td></tr></tbody></table><h4 id="二、检查事件是否正常"><a href="#二、检查事件是否正常" class="headerlink" title="二、检查事件是否正常"></a>二、检查事件是否正常</h4><pre><code>1 redis-cli --csv psubscribe &#39;*&#39;  2 # 结果   3 Reading messages... (press Ctrl-C to quit)  4 &quot;psubscribe&quot;,&quot;*&quot;,1</code></pre><h4 id="三、配置回调函数"><a href="#三、配置回调函数" class="headerlink" title="三、配置回调函数"></a>三、配置回调函数</h4><p>在python的视图类中进行配置</p><pre><code class="js"># 连接redis数据库redis = Redis(host=&#39;127.0.0.1&#39;, port=6379, decode_responses=True)# 监听新消息pubsub = redis.pubsub()# 定义触发事件def orderbuy(msg):    order_id = str(msg[&#39;data&#39;])    # 获取订单对象    order = Order.objects.get(order_id=order_id)    # 判断用户是否已经付款    if str(order.status) == &quot;1&quot;:        # 取消订单,更改订单状态        Order.objects.filter(order_id=order_id).update(status=&quot;2&quot;)        # 获取订单中的所有商品        goods = order.objects.all()        # 遍历商品        for good in goods:            # 获取订单中的商品数量            count = good.count            print(count)            # 获取name商品            name = good.name            # 将库存重新增加到sku的stock中去            name.stock += count            # 从销量中减去已经取消的数量            name.sales -= count            name.save()#订阅redis键空间通知pubsub.psubscribe(**&#123;&#39;__keyevent@0__:expired&#39;: event_handler&#125;)# 死循环,接收订阅的通知while True:    message = pubsub.get_message()    if message:        print(message)    else:        time.sleep(0.1)</code></pre><pre><code>keyevent@0:expired’:设定通知类型: keyspace、keyevent设置事件类型: expired选中数据库号: @0()</code></pre><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>在购物车项目中进行添加，先在终端开启redis的键空间，然后开启键空间，在新的终端打开redis进行创建数据，就会有数据发送给键空间，然后保存，最后在python的视图函数中进行配置redis监听数据，判断是否支持，再发送数据给键空间，进行无线循环获取订阅获取的通知。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> redis </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> redis键空间事件 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Redis订阅与发布</title>
+      <link href="/blogs/2021/02/01/day08/"/>
+      <url>/blogs/2021/02/01/day08/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h4 id="一、什么是Redis"><a href="#一、什么是Redis" class="headerlink" title="一、什么是Redis"></a>一、什么是Redis</h4><p>Redis是一个开源的内存数据库，它以键值对的形式存储数据。由于数据存储在内存中，因此Redis的速度很快，但是每次重启Redis服务时，其中的数据也会丢失，因此，Redis也提供了持久化存储机制(AOF,RDB)，将数据以某种形式保存在文件中，每次重启时，可以自动从文件加载数据到内存当中。 </p><h4 id="二、什么是发布订阅"><a href="#二、什么是发布订阅" class="headerlink" title="二、什么是发布订阅"></a>二、什么是发布订阅</h4><p>Redis 发布订阅是一种消息通信模式：发送者发送消息，订阅者接收消息。</p><h4 id="三、发布者"><a href="#三、发布者" class="headerlink" title="三、发布者"></a>三、发布者</h4><p>发布者是用来发布消息</p><p>publish 将信息发送到指定的频道</p><p>语法:</p><pre><code>publish channel message</code></pre><p> 返回结果:</p><pre><code>接收到信息的订阅者数量</code></pre><pre><code class="js">import timeimport redisnumber = [&#39;2000&#39;, &#39;2001&#39;, &#39;2002&#39;, &#39;2003&#39;]sing = [&#39;12&#39;, &#39;30&#39;, &#39;1&#39;, &#39;30&#39;]redis = redis.Redis(host=&#39;127.0.0.1&#39;, port=&#39;6379&#39;, db=0, password=&#39;密码即可&#39;)for i in range(len(number)):    value = str(number[i]) + &#39; &#39; + str(sing[i])    redis.publish(&quot;ceshi&quot;, value)  #发布消息到ceshi</code></pre><h4 id="三、订阅者"><a href="#三、订阅者" class="headerlink" title="三、订阅者"></a>三、订阅者</h4><pre><code class="js">import timeimport redisredis = redis.Redis(host=&#39;127.0.0.1&#39;, port=&#39;6379&#39;, db=1, password=&#39;密码即可&#39;)ps = redis.pubsub()ps.subscribe(&#39;liao&#39;)  #从liao订阅消息for item in ps.listen():        #监听状态：有消息发布了就拿过来    if i[&#39;type&#39;] == &#39;message&#39;:        print i[&#39;change&#39;]        print i[&#39;data&#39;]</code></pre><h4 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h4><p>①连接方式使用python连接redis<br>②是订阅方法。这里使用的是Redis类中的pubsub方法。连接好之后，可使用subscribe方法来订阅redis消息。其中subscribe是订阅一个频道，之后就可以开始监听了。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> redis </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Redis订阅与发布 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>celery异步框架</title>
+      <link href="/blogs/2021/01/30/day06/"/>
+      <url>/blogs/2021/01/30/day06/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="关于Celery"><a href="#关于Celery" class="headerlink" title="关于Celery"></a>关于Celery</h2><pre><code>Celery 是一款非常简单、灵活、可靠的分布式系统，可用于处理大量消息，并且提供了一整套操作此系统的一系列工具，同时Celery 是一款消息队列工具，可用于处理实时数据以及任务调度。</code></pre><h4 id="一、安装"><a href="#一、安装" class="headerlink" title="一、安装"></a>一、安装</h4><pre><code>pip install celery</code></pre><h4 id="二、注册创建任务"><a href="#二、注册创建任务" class="headerlink" title="二、注册创建任务"></a>二、注册创建任务</h4><pre><code class="js">from celery import Celeryimport timeredis=Celery(&#39;hello&#39;, broker=&#39;redis://127.0.0.1:6379&#39;, backend=&#39;redis://127.0.0.1:6379&#39;)@redis.taskdef sendto():    print(&quot;hello gaolei&quot;)    time.sleep(5)    return &quot;发送成功&quot;if __name__ == &#39;__main__&#39;:    res=sendto.delay()    print(res)</code></pre><p>task共享</p><p>用shared_task修饰时，不需要依赖于指定实例对象。</p><pre><code class="js">from celery import shared_task@shared_taskdef foo():    return &quot;hello world&quot;if __name__ == &#39;__main__&#39;:    res=foo.delay()    print(res)</code></pre><h4 id="三、启动Worker"><a href="#三、启动Worker" class="headerlink" title="三、启动Worker"></a>三、启动Worker</h4><p>启动Worker，监听Broker中是否有任务，</p><pre><code>celery -A tasks worker --loglevel=info</code></pre><h4 id="四、调用任务"><a href="#四、调用任务" class="headerlink" title="四、调用任务"></a>四、调用任务</h4><p>在主程序中调用任务，掉任务发送给 Broker， 而不是真正执行该任务</p><pre><code class="js">from tasks import sendtoimport timedef register():    start = time.time()    print(&quot;插入记录到数据库&quot;)    print(&quot;2. celery发送hello gaolei&quot;)    sendto.delay(&quot;hello&quot;)    print(&quot;注册成功&quot;)    print(&quot;耗时：%s 秒 &quot; % (time.time() - start))if __name__ == &#39;__main__&#39;:    register()</code></pre><p>执行任务花费5秒</p><h4 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h4><pre><code>celery的设计于很多模块相耦合，比如broker可以使用redis来进行操作相对于保存结果而言，celery需要在某个地方存储或发送状态，支持内置后端。程序运行过程中，要执行耗时的任务，不想主程序被阻塞，常见的方法是多线程。但是多线程并发过量也需要限制并发个数所以使用celery。</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> celery异步框架 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>三方支付</title>
+      <link href="/blogs/2021/01/29/day05/"/>
+      <url>/blogs/2021/01/29/day05/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="三方支付"><a href="#三方支付" class="headerlink" title="三方支付"></a>三方支付</h2><p>1、注册一个沙箱号：<a href="https://open.alipay.com/platform/home.htm">https://open.alipay.com/platform/home.htm</a></p><h4 id="一、安装插件"><a href="#一、安装插件" class="headerlink" title="一、安装插件"></a>一、安装插件</h4><pre><code class="js">pip install python-alipay-sdk --upgrade</code></pre><h4 id="二、在settings中配置"><a href="#二、在settings中配置" class="headerlink" title="二、在settings中配置"></a>二、在settings中配置</h4><pre><code class="js">ALIPAY_APPID = &#39;&#39;ALIPAY_URL = &quot;&quot;ALIPAY_DEBUG = TrueAPP_PRIVATE_KEY_PATH = &#39;&#39;ALIPAY_PUBLIC_KEY_PATH = &#39;&#39;ALIPAY_GATE = &#39;https://openapi.alipaydev.com/gateway.do?&#39;</code></pre><h4 id="三、发起支付"><a href="#三、发起支付" class="headerlink" title="三、发起支付"></a>三、发起支付</h4><p>请求方式：Get</p><pre><code class="js">from rest_framework.views import APIViewfrom rest_framework.response import Responsefrom orders.models import *from rest_framework import statusfrom alipay import AliPay  #支付from mall import settingsclass AliPayURLView(APIView):    def get(self, request, order_id):        # 根据order_id查询订单对象        try:            order_obj = OrderInfo.objects.get(pk=order_id)        except:            raise Exception(&quot;订单号无效&quot;)        # 创建alipay对象        alipay = AliPay(            appid=settings.ALIPAY_APPID,            app_notify_url=None,            app_private_key_path=settings.ALIPAY_PRIVATE_KEY_PATH,            alipay_public_key_path=settings.ALIPAY_PUBLIC_KEY_PATH,            debug=settings.ALIPAY_DEBUG        )    subject=&#39;支付宝支付&#39;        # 跳转到 https://openapi.alipay.com/gateway.do? + order_string    order_string = alipay.api_alipay_trade_page_pay(        out_trade_no=order_id,        total_amount=str(order.total_amount), # 这里类型我们要由 decimal转换为 str        subject=subject,        return_url=&quot;http://127.0.0.1/pay_success.html&quot;    )    #  拼接url,并且返回    url = settings.ALIPAY_URL + &#39;?&#39; + order_string    return Response(&#123;&#39;alipay_url&#39;:url&#125;)</code></pre><h4 id="五、保存支付结果"><a href="#五、保存支付结果" class="headerlink" title="五、保存支付结果"></a>五、保存支付结果</h4><p>请求方式： PUT<br>路径：/pay/?参数</p><pre><code class="js"> class PayStatusAPIView(APIView):    def put(self,request):    # 1. 创建alipay对象    app_private_key_string = settings.APP_PRIVATE_KEY_PATH    alipay_public_key_string = settings.ALIPAY_PUBLIC_KEY_PATH    alipay = AliPay(        appid=settings.ALIPAY_APPID,        app_notify_url=None,  # 回调url        app_private_key_string=app_private_key_string,        # 支付宝的公钥，验证支付宝回传消息使用        alipay_public_key_string=alipay_public_key_string,        sign_type=&quot;RSA2&quot;,          debug=settings.ALIPAY_DEBUG  # 默认False    )    # 2.验证数据    data = request.query_params.dict()    # sign 不能参与签名验证    signature = data.pop(&quot;sign&quot;)    # verify确认是否成功    success = alipay.verify(data, signature)    if success:        # 3.验证成功之后,可以从 data中获取 支付宝的订单id和 我们的订单id        # 支付宝的交易id        trade_id = data.get(&#39;trade_id&#39;)        # 商家id        out_trade_id = data.get(&#39;out_trade_id&#39;)        #1. 把支付宝的订单id和 我们的订单id 保存起来        Payment.objects.create(           order_id=out_trade_id,            trade_id=trade_id        )        # 2. 更新订单的状态        OrderInfo.objects.filter(order_id=out_trade_no).update(status=OrderInfo.ORDER_STATUS_ENUM[&#39;UNSEND&#39;])        #3. 返回 支付宝的订单id        return Response(&#123;&#39;trade_id&#39;:trade_id&#125;)</code></pre><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><pre><code>先创建沙箱账号，支付宝登录获取ALIPAY_APPID等信息，保存在settings.py文件下然后进行视图的编写，判断是否有下单时的订单号然后进行获取回调地址等信息，最后回调返回支付成功保存数据完成支付接口</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 三方支付 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>axios拦截器</title>
+      <link href="/blogs/2021/01/28/day07/"/>
+      <url>/blogs/2021/01/28/day07/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="Axios拦截器使用教程"><a href="#Axios拦截器使用教程" class="headerlink" title="Axios拦截器使用教程"></a>Axios拦截器使用教程</h2><h4 id="一、安装axios"><a href="#一、安装axios" class="headerlink" title="一、安装axios"></a>一、安装axios</h4><pre><code>npm install axios --save</code></pre><h4 id="二、配置axios实例"><a href="#二、配置axios实例" class="headerlink" title="二、配置axios实例"></a>二、配置axios实例</h4><p>在src文件下创建文件夹http，然后再里面创建index.js和api.js</p><p>index.js是用来分装axios和请求方法的，api.js是用来调用方法。</p><h4 id="index-js"><a href="#index-js" class="headerlink" title="index.js"></a>index.js</h4><pre><code class="js">// 配置axios基本的属性const axios = require(&#39;axios&#39;)axios.defaults.baseURL = &#39;http://127.0.0.1:8000&#39; // 请求的接口主域名axios.defaults.timeout = 5000 // 请求超时的设置 5s// 请求拦截axios.interceptors.request.use(    //config 代表是你请求的一些信息    config =&gt; &#123;        // 在请求发送之前的操作        // 可以进行token的保持等......        return config    &#125;,    error =&gt; &#123;        // 对错误请求的处理        // 弹出错误请求消息        console.log(error)        return Promise.reject(error)    &#125;)//  response拦截器 响应拦截器 请求之后的操作axios.interceptors.response.use(    config =&gt; &#123;        return config    &#125;,    error =&gt; &#123;        return Promise.reject(error)    &#125;)/** * post方法，对应post请求 * @param &#123;String&#125; url [请求的url地址] * @param &#123;Object&#125; params [请求时携带的参数] * @param &#123;Object&#125; headers [请求时的头部] **/// get方法export function get(url, params, headers) &#123;  return new Promise((resolve, reject) =&gt; &#123;    axios.get(url, &#123;params, headers&#125;).then(res =&gt; &#123;      resolve(res)    &#125;).catch(err =&gt; &#123;      reject(err)    &#125;)  &#125;)&#125;//post方法export function post(url, params, headers) &#123;  return new Promise((resolve, reject) =&gt; &#123;    axios.post(url, params, headers).then((res) =&gt; &#123;      resolve(res)    &#125;).catch((err) =&gt; &#123;      // debugger      reject(err)    &#125;)  &#125;)&#125;//put方法export function put(url, params, headers) &#123;  return new Promise((resolve, reject) =&gt; &#123;    axios.put(url, params, headers).then((res) =&gt; &#123;      resolve(res)    &#125;).catch((err) =&gt; &#123;      // debugger      reject(err)    &#125;)  &#125;)&#125;//delete方法export function del(url, params, headers) &#123;  return new Promise((resolve, reject) =&gt; &#123;    axios.delete(url, &#123;data: params, headers&#125;).then((res) =&gt; &#123;      resolve(res)    &#125;).catch((err) =&gt; &#123;      // debugger      reject(err)    &#125;)  &#125;)&#125;export default axios;</code></pre><h3 id="四、在api下进行使用所分装的方法"><a href="#四、在api下进行使用所分装的方法" class="headerlink" title="四、在api下进行使用所分装的方法"></a>四、在api下进行使用所分装的方法</h3><h4 id="api-js"><a href="#api-js" class="headerlink" title="api.js"></a>api.js</h4><pre><code class="js">import &#123;get, post, put, del&#125; from &#39;./index&#39;//get方法export const 调用名 = parameter =&gt; &#123;  return get(    &#39;路由地址&#39;,    parameter,  )&#125;// post方法export const 调用名 = parameter =&gt; &#123;  return post(    &#39;路由地址&#39;,    parameter,  )&#125;// put方法export const 调用名 = parameter =&gt; &#123;  return put(    &#39;路由地址&#39;,    parameter,  )&#125;// delete方法export const 调用名 = parameter =&gt; &#123;  return del(    &#39;路由地址&#39;,    parameter,  )&#125;</code></pre><h3 id="五、最后在vue组件中进行使用"><a href="#五、最后在vue组件中进行使用" class="headerlink" title="五、最后在vue组件中进行使用"></a>五、最后在vue组件中进行使用</h3><h4 id="project-vue"><a href="#project-vue" class="headerlink" title="project.vue"></a>project.vue</h4><pre><code class="js">import &#123;调用名&#125; from &quot;@/http/api.js&quot;;export default &#123;  created() &#123;    调用名()      .then(res =&gt; &#123;        console.log(res);      &#125;)      .catch(err =&gt; &#123;        console.log(err);      &#125;);  &#125;&#125;</code></pre><h4 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h4><pre><code>在使用axios拦截器需要注意，先保证有axios的包，设置axios的请求接口然后进行分装请求拦截器，请求拦截器是在发送请求时所调用的方法，响应拦截器是在请求后进行的操作。然后分装get等方法进行使用，最后在vue组件中进行调用方法然后进行请求接口的访问。</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> vue </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> axios拦截器 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>微博三方登录</title>
+      <link href="/blogs/2021/01/28/day4/"/>
+      <url>/blogs/2021/01/28/day4/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="总体流程"><a href="#总体流程" class="headerlink" title="总体流程"></a>总体流程</h2><p>首先需要注册”新浪微博开放平台”：<a href="https://open.weibo.com/">https://open.weibo.com</a></p><p>添加网站应用前需要先提交认证审核，然后添加完网站应用再提交应用审核。</p><p>创建完应用后会有一个 App Key 和 App Secret。</p><h5 id="1-获取-code"><a href="#1-获取-code" class="headerlink" title="1.获取 code"></a>1.获取 code</h5><p>第三方客户端引导用户发送get请求</p><pre><code>https://api.weibo.com/oauth2/authorize</code></pre><p>参数：</p><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">client_id</td><td align="center">是</td><td align="left">申请应用时分配的AppKey。</td></tr><tr><td align="center">redirect_uri</td><td align="center">是</td><td align="left">授权回调地址。</td></tr><tr><td align="center">scope</td><td align="center">否</td><td align="left">申请scope权限所需参数，可一次申请多个scope权限，用逗号分隔</td></tr><tr><td align="center">state</td><td align="center">否</td><td align="left">用于保持请求和回调的状态，在回调时，会在Query Parameter中回传该参数</td></tr><tr><td align="center">display</td><td align="center">否</td><td align="left">授权页面的终端类型，取值见下面的说明。</td></tr><tr><td align="center">forcelogin</td><td align="center">否</td><td align="left">是否强制用户重新登录，true：是，false：否。默认false。</td></tr><tr><td align="center">language</td><td align="center">否</td><td align="left">授权页语言，缺省为中文简体版，en为英文版。</td></tr></tbody></table><p>这时会跳转到登入授权页面，授权后新浪微博会向客户端返回到我们的创建应用的时候填写的那个回调地址。并且带着code参数</p><h5 id="2-通过-code-获取-access-token"><a href="#2-通过-code-获取-access-token" class="headerlink" title="2.通过 code 获取 access_token"></a>2.通过 code 获取 access_token</h5><p>有了code，我们在通过 <code>App Key</code> 、<code>App Secret</code> 和<code>code</code>等参数去发送 post 请求，获取 <code>access_token</code></p><pre><code>https://graph.qq.com/oauth2.0/token</code></pre><h6 id="注意，虽然是post请求，但是参数是通过get传递的-参数："><a href="#注意，虽然是post请求，但是参数是通过get传递的-参数：" class="headerlink" title="注意，虽然是post请求，但是参数是通过get传递的 参数："></a>注意，虽然是post请求，但是参数是通过get传递的 参数：</h6><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">client_id</td><td align="center">是</td><td align="left">申请应用时分配的AppKey。</td></tr><tr><td align="center">client_secret</td><td align="center">是</td><td align="left">申请应用时分配的AppSecret。</td></tr><tr><td align="center">grant_type</td><td align="center">是</td><td align="left">请求的类型，填写authorization_code</td></tr><tr><td align="center">code</td><td align="center">是</td><td align="left">调用authorize获得的code值。</td></tr><tr><td align="center">redirect_uri</td><td align="center">是</td><td align="left">回调地址，需需与注册应用里的回调地址一致。</td></tr></tbody></table><h6 id="返回数据包括-access-token-、uid等信息："><a href="#返回数据包括-access-token-、uid等信息：" class="headerlink" title="返回数据包括 access_token 、uid等信息："></a>返回数据包括 access_token 、uid等信息：</h6><pre><code class="js"> &#123;       &quot;access_token&quot;: &quot;&quot;,       &quot;expires_in&quot;: &#39;&#39;,       &quot;remind_in&quot;:&quot;&quot;,       &quot;uid&quot;:&quot;&quot; &#125;</code></pre><h5 id="3-用-access-token-获取用户信息"><a href="#3-用-access-token-获取用户信息" class="headerlink" title="3.用 access_token 获取用户信息"></a>3.用 access_token 获取用户信息</h5><p>get请求地址：</p><pre><code>https://api.weibo.com/2/users/show.json</code></pre><p>参数：</p><table><thead><tr><th align="center">参数名</th><th align="center">是否必须</th><th align="left">含义</th></tr></thead><tbody><tr><td align="center">access_token</td><td align="center">是</td><td align="left">采用OAuth授权方式为必填参数，OAuth授权后获得。</td></tr><tr><td align="center">uid</td><td align="center">否</td><td align="left">需要查询的用户ID。</td></tr><tr><td align="center">screen_name</td><td align="center">否</td><td align="left">需要查询的用户昵称。</td></tr></tbody></table><p>注意：参数uid与screen_name二者必选其一，且只能选其一。</p><p>我们可以用返回的 access_token 与 uid 访问获取用户信息</p><h2 id="代码部分"><a href="#代码部分" class="headerlink" title="代码部分"></a>代码部分</h2><h4 id="后端部分"><a href="#后端部分" class="headerlink" title="后端部分"></a>后端部分</h4><p>首先在settings中配置</p><pre><code class="js"># 微博第三方登录配置App_Key = &#39;&#39;  # App KeyApp_Secret = &#39;&#39;  # App SecretMicroBlog_URL = &#39;&#39;  # 回调页地址</code></pre><p>在views.py中进行登录配置操作</p><pre><code class="js">import requestsfrom BlogDjango.settings import App_Key, App_Secret, MicroBlog_URLfrom rest_framework.views import APIViewfrom rest_framework.response import Responsefrom django.shortcuts import redirectclass MicroBlogView(APIView):    # 使用微博开放平台可以使用get和post    def get(self, request):        micro_url = &#39;https://api.weibo.com/oauth2/authorize?client_id=&#123;&#125;&amp;redirect_uri=&#123;&#125;&#39;.format(App_Key, MicroBlog_URL)        return Response(&#123;&#39;url&#39;: micro_url&#125;)    # 使用新浪开放平台OAuth2/access_token接口, 只能使用post方法    def post(self, request):        # 获取code, 去访问token        code = request.data.get(&#39;code&#39;, None)        # 使用requests网络请求请求        r = requests.post(&#39;https://api.weibo.com/oauth2/access_token&#39;, &#123;            &#39;client_id&#39;: App_Key,            &#39;client_secret&#39;: App_Secret,            &#39;grant_type&#39;: &#39;authorization_code&#39;,            &#39;code&#39;: code,            &#39;redirect_uri&#39;: MicroBlog_URL        &#125;)        # 获取返回的对象        print(r.json())        access_token = r.json()[&#39;access_token&#39;]        uid = r.json()[&#39;uid&#39;]        if access_token:            return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 200, &#39;uid&#39;: uid&#125;)        return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 200&#125;)# 使用微博登录时用到的回调地址def micro_callback(request):    code = request.GET.get(&#39;code&#39;, None)    return redirect(&#39;http://127.0.0.1:8080/#/oauthCallback?code=&#39; + code)</code></pre><h4 id="前段部分"><a href="#前段部分" class="headerlink" title="前段部分"></a>前段部分</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;        &lt;!-- 通过这个weiBoUrl地址可以进入微博的回调页，获取到code并传到后端 --&gt;      &lt;a :href=&quot;weiBoUrl&quot;&gt;微博&lt;/a&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;    data() &#123;        return &#123;            weiBoUrl: &#39;&#39;,        &#125;    &#125;,    mounted() &#123;        // 获取微博授权页地址      this.$axios.get(&#39;micro&#39;).then(res=&gt;&#123;        this.weiBoUrl = res.data.url;        console.log(res.data)      &#125;).catch(err=&gt;&#123;        console.log(err)      &#125;)&#125;&#125;&lt;/script&gt;&lt;style&gt;&lt;/style&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 微博三方登录 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>子父组件</title>
+      <link href="/blogs/2021/01/27/day03/"/>
+      <url>/blogs/2021/01/27/day03/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="组件"><a href="#组件" class="headerlink" title="组件"></a>组件</h2><h4 id="什么是组件？"><a href="#什么是组件？" class="headerlink" title="什么是组件？"></a>什么是组件？</h4><p>   组件是Vue中的一个重要概念，是一个可以重复使用的Vue是可以复用的Vue实例，它拥有独一无二的组件名称，它可以扩展HTML元素，以组件名称的方式作为自定义的HTML标签。因为组件是可复用的Vue实例，所以它们与new Vue（）接收相同的选项，例如data，computed、watch、methods以及生命周期钩子等。仅有的例外是像el这样根实例特有的选项。</p><h2 id="父子组件通信"><a href="#父子组件通信" class="headerlink" title="父子组件通信"></a>父子组件通信</h2><h4 id="父组件"><a href="#父组件" class="headerlink" title="父组件"></a>父组件</h4><p> ·父组件在组件上定义了一个自定义事件childFn，事件名为parentFn用于接受子组件传过来的message值。</p><pre><code class="js">&lt;!-- 父组件 --&gt;&lt;template&gt;   &lt;div class=&quot;test&quot;&gt;     &lt;test-com @childFn=&quot;parentFn&quot;&gt;&lt;/test-com&gt;     &lt;br/&gt;      子组件传来的值 : &#123;&#123;message&#125;&#125;   &lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;   // ...   data() &#123;       return &#123;            message: &#39;&#39;       &#125;   &#125;,   methods: &#123;      parentFn(payload) &#123;       this.message = payload;     &#125;   &#125;&#125;&lt;/script&gt;</code></pre><h4 id="子组件"><a href="#子组件" class="headerlink" title="子组件"></a>子组件</h4><p>·子组件是一个buttton按钮，并为其添加了一个click事件，当点击的时候使用$emit()触发事件，把message传给父组件。</p><pre><code class="js">&lt;!-- 子组件 --&gt;&lt;template&gt; &lt;div class=&quot;testCom&quot;&gt;    &lt;input type=&quot;text&quot; v-model=&quot;message&quot; /&gt;    &lt;button @click=&quot;click&quot;&gt;Send&lt;/button&gt;&lt;/div&gt;&lt;/template&gt;&lt;script&gt;export default &#123;    // ...    data() &#123;        return &#123;          // 默认          message: &#39;我是来自子组件的消息&#39;        &#125;    &#125;,    methods: &#123;      click() &#123;            this.$emit(&#39;childFn&#39;, this.message);        &#125;    &#125;    &#125;&lt;/script&gt;</code></pre><h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>·通过”props down , events up”我们就简单的实现了父子组件之间的双向传值</p><h2 id="子父组件通信"><a href="#子父组件通信" class="headerlink" title="子父组件通信"></a>子父组件通信</h2><p>第一种方法是直接在子组件中通过this.$parent.event来调用父组件的方法</p><h4 id="父组件-1"><a href="#父组件-1" class="headerlink" title="父组件"></a>父组件</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;    &lt;check&gt;&lt;/check&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;  import check from &#39;@/components/check&#39;;  export default &#123;    components: &#123;      check    &#125;,    methods: &#123;      father() &#123;        console.log(&#39;传值成功&#39;);      &#125;    &#125;  &#125;;&lt;/script&gt;</code></pre><h4 id="子组件-1"><a href="#子组件-1" class="headerlink" title="子组件"></a>子组件</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;    &lt;button @click=&quot;check()&quot;&gt;点击&lt;/button&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;  export default &#123;    methods: &#123;      check() &#123;        this.$parent.father();      &#125;    &#125;  &#125;;&lt;/script&gt;</code></pre><p>·第二种方法是在子组件里用$emit向父组件触发一个事件，父组件监听这个事件就行了。</p><h4 id="父组件-2"><a href="#父组件-2" class="headerlink" title="父组件"></a>父组件</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;    &lt;check @fatherMethod=&quot;father&quot;&gt;&lt;/check&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;  import check from &#39;@/components/check&#39;;  export default &#123;    components: &#123;      check    &#125;,    methods: &#123;      father() &#123;        console.log(&#39;传值成功&#39;);      &#125;    &#125;  &#125;;&lt;/script&gt;</code></pre><h4 id="子组件-2"><a href="#子组件-2" class="headerlink" title="子组件"></a>子组件</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;    &lt;button @click=&quot;check()&quot;&gt;点击&lt;/button&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;  export default &#123;    methods: &#123;      check() &#123;        this.$emit(&#39;father&#39;);      &#125;    &#125;  &#125;;&lt;/script&gt;</code></pre><p>·第三种是父组件把方法传入子组件中，在子组件里直接调用这个方法</p><h4 id="父组件-3"><a href="#父组件-3" class="headerlink" title="父组件"></a>父组件</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;    &lt;check :father=&quot;father&quot;&gt;&lt;/check&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;  import check from &#39;@/components/check&#39;;  export default &#123;    components: &#123;      check    &#125;,    methods: &#123;      father() &#123;        console.log(&#39;传值成功&#39;);      &#125;    &#125;  &#125;;&lt;/script&gt;</code></pre><h4 id="子组件-3"><a href="#子组件-3" class="headerlink" title="子组件"></a>子组件</h4><pre><code class="js">&lt;template&gt;  &lt;div&gt;    &lt;button @click=&quot;check()&quot;&gt;点击&lt;/button&gt;  &lt;/div&gt;&lt;/template&gt;&lt;script&gt;  export default &#123;    props: &#123;      father: &#123;        type: Function,        default: null      &#125;    &#125;,    methods: &#123;      check() &#123;        if (this.father) &#123;          this.father();        &#125;      &#125;    &#125;  &#125;;&lt;/script&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> Vue </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Vue父子组件 子父组件 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Vue路由钩子</title>
+      <link href="/blogs/2021/01/26/day02/"/>
+      <url>/blogs/2021/01/26/day02/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h2 id="路由钩子函数"><a href="#路由钩子函数" class="headerlink" title="路由钩子函数"></a>路由钩子函数</h2><h4 id="一、路由钩子函数"><a href="#一、路由钩子函数" class="headerlink" title="一、路由钩子函数"></a>一、路由钩子函数</h4><p>路由钩子作用就是拦截导航栏，就是在跳转的时候进行判断</p><pre><code>vue-router 提供的导航钩子主要用来拦截导航，让它完成跳转或取消</code></pre><h5 id="路由钩子分为三类：-全局的、单个路由独享的、或者组件级"><a href="#路由钩子分为三类：-全局的、单个路由独享的、或者组件级" class="headerlink" title="路由钩子分为三类： 全局的、单个路由独享的、或者组件级"></a>路由钩子分为三类： 全局的、单个路由独享的、或者组件级</h5><h4 id="二、全局钩子"><a href="#二、全局钩子" class="headerlink" title="二、全局钩子"></a>二、全局钩子</h4><p>主要包括beforeEach和aftrEach,这类钩子主要作用于全局,一般用来判断权限,以及以及页面丢失时候需要执行的操作。</p><pre><code class="js">1 beforeEach函数有三个参数：2 - to:router即将进入的路由对象3 - from:当前导航即将离开的路由4 - next:Function,进行管道中的一个钩子，如果执行完了，则导航的状态就是 confirmed （确认的）；否则为false，终止导航。5 可以使用router.beforeEach注册一个全局的 before 钩子6 router.beforeEach((to, from, next) =&gt; &#123; // ... &#125;)78 after 钩子没有 next 方法，不能改变导航9 router.afterEach(route =&gt; &#123; // ...&#125;)</code></pre><h4 id="三、单个路由钩子"><a href="#三、单个路由钩子" class="headerlink" title="三、单个路由钩子"></a>三、单个路由钩子</h4><p>主要用于写某个指定路由跳转时需要执行的逻辑</p><pre><code class="js">1 &#123;2        path: &#39;&#39;,3        component: &#39;&#39;,4        meta: &#39;&#39;,5        beforeEnter: (to, from, next) =&gt; &#123;     6            //进入时执行代码块7        &#125;,8        beforeLeave: (to, from, next) =&gt; &#123;9            //离开时执行代码块10        &#125;11    &#125;</code></pre><h4 id="四、组件内的钩子"><a href="#四、组件内的钩子" class="headerlink" title="四、组件内的钩子"></a>四、组件内的钩子</h4><p>主要包括 beforeRouteEnter和beforeRouteUpdate ,beforeRouteLeave,这几个钩子都是写在组件里面也可以传三个参数(to,from,next)。</p><pre><code class="js">1 &lt;script&gt;2  Vue.component(&#39;LifeCircle&#39;,&#123;3    template: &#39;#life-circle&#39;,4    data () &#123;5      return &#123;6      &#125;7    &#125;,8    // 初始化阶段钩子函数9    beforeCreate () &#123; //表示组件创建前的准备工作（ 初始化事件和生命周期 ）     10      //组件未创建，数据拿不到11      console.log(&#39;1&#39;);12    &#125;,13    created () &#123; // 组件创建结束14      console.log(&#39;2&#39;)15    &#125;,16    beforeMount () &#123; 17      console.log( &#39;3&#39; )18    &#125;,19    mounted () &#123;     //表示组件装载结束20      console.log(&#39;4&#39;)21    &#125;22 &lt;/script&gt;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> Vue </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Vue路由钩子函数 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Vue拦截器</title>
+      <link href="/blogs/2021/01/25/day1/"/>
+      <url>/blogs/2021/01/25/day1/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/river.png" alt="cover"></p><h1 id="Vue拦截器"><a href="#Vue拦截器" class="headerlink" title="Vue拦截器"></a>Vue拦截器</h1><h5 id="一、路由守卫"><a href="#一、路由守卫" class="headerlink" title="一、路由守卫"></a>一、路由守卫</h5><p>在做项目时, 我们总是会判断一个用户有没有登录(例如: 当用户没有登录的时候，跳转到登录页面，已经登录的时候，不能跳转到登录页，除非后台token失效), 要实现这个功能的话, 就需要路由守卫来做.</p><pre><code class="js">1 // 配置全局的vue路由拦截器, 导航守卫(路由守卫)2 router.beforeEach((to,from,next) =&gt; &#123;3  console.log(to);  // 可以看出路由的去向4  console.log(from);  // 可以看出从哪个路由跳转而来5  const token = sessionStorage.getItem(&#39;token&#39;);  // 获取token6  // 判断 是否是跳转到 某页, 如果是则必须登录才能跳转 7  if (to.path in [&#39;某页&#39;, &#39;某页&#39;] || token) &#123;8      next()  // 放行9    &#125; else &#123;10      alert(&#39;没有登陆, 不能操作&#39;);11      next(&#39;/login?back=&#39; + to.fullPath);  //跳转到登录页(带参数), path不能带参数, fullpath可以带参数12     return  // 打断13    &#125;14  &#125;);</code></pre><h5 id="二、拦截器的作用及分类"><a href="#二、拦截器的作用及分类" class="headerlink" title="二、拦截器的作用及分类"></a>二、拦截器的作用及分类</h5><p>拦截器的作用:</p><pre><code>一般来说，像数据交互之类的都要用到不同的身份验证，比如登录 token验证，验证用户是否登录，如果没有登录，该用户就不能操作登录之后的内容.</code></pre><p>拦截器的分类:</p><pre><code>在请求或响应被 then 或 catch 处理前拦截他们，分为请求拦截器和响应拦截器.</code></pre><h5 id="三、请求拦截器和响应拦截器"><a href="#三、请求拦截器和响应拦截器" class="headerlink" title="三、请求拦截器和响应拦截器"></a>三、请求拦截器和响应拦截器</h5><p>   一般在请求拦截器中增加标识token或其他请求配置，在响应拦截器中对统一错误或状态码进行处理(跳转统一页面如登录)</p><p>1、添加请求拦截器</p><p>请求拦截器获取token设置到axios请求头中，如果登录了, 那么自带token发送, 所有请求接口都具有这个功能</p><pre><code class="js">1 // 添加请求拦截器2 axios.interceptors.request.use(config=&gt;&#123;3 // 在发送请求之前做些什么4   return config;5 &#125;, error=&gt; &#123;6    // 对请求错误做些什么7    return Promise.reject8(error);8   &#125;);</code></pre><p>2、添加响应拦截器</p><p>响应拦截器(在响应时会自动做的操作), 响应拦截器一般会对, 响应的错误信息进行处理。</p><pre><code class="js">1 axios.interceptors.response.use(response =&gt; &#123;2  return response;  // 成功信息直接返回&#125;, error =&gt; &#123;3    // 错误信息需要处理4    if (error.request.status === 401) &#123;5      window.location.href = &#39;/&#39;;6    &#125;7   return error8 &#125;);</code></pre><h5 id="四、封装get-post等方法"><a href="#四、封装get-post等方法" class="headerlink" title="四、封装get, post等方法"></a>四、封装get, post等方法</h5><p>可根据封装好的axios，进行封装post,put,get,delete方法</p><p>必要参数:</p><ol><li>url: 请求的url地址</li><li>params: 请求时携带的参数</li><li>headers: 请求时的头部</li></ol><pre><code class="js">1// get方法封装2export function get(url, params, headers) &#123;3  return new Promise((resolve, reject) =&gt; &#123;4    axios.get(url, &#123;params, headers&#125;).then(res =&gt;&#123;5      resolve(res)6    &#125;).catch(err =&gt; &#123;7      reject(err)8    &#125;)9  &#125;)10 &#125;1112 // post方法封装13 export function post(url, params, headers) &#123;14  return new Promise((resolve, reject) =&gt; &#123;15    axios.post(url, params, headers).then(res =&gt;&#123;16      resolve(res)17    &#125;).catch(err =&gt; &#123;18      reject(err)19    &#125;)20  &#125;)21 &#125;2223 // put方法封装24 export function put(url, params, headers) &#123;25  return new Promise((resolve, reject) =&gt; &#123;26    axios.put(url, params, headers).then(res =&gt;&#123;27      resolve(res)28    &#125;).catch(err =&gt; &#123;29      reject(err)30    &#125;)31  &#125;)32 &#125;3334 // delete方法封装35 export function del(url, params, headers) &#123;36   return new Promise((resolve, reject) =&gt; &#123;37    axios.delete(url, &#123;data: params, headers&#125;).then(res =&gt; &#123;38       resolve(res)39    &#125;).catch(err =&gt; &#123;40      reject(err)41    &#125;)42  &#125;)43 &#125;</code></pre><h5 id="五、使用封装方法"><a href="#五、使用封装方法" class="headerlink" title="五、使用封装方法"></a>五、使用封装方法</h5><p>导入</p><pre><code class="js">1 import &#123; get, post, put, del &#125; from &#39;封装axios的js文件&#39;</code></pre><p>登录添加接口</p><pre><code class="js">1 export const signIn = data =&gt; &#123;2  return post(3    &#39;/signIn&#39;,4    data,5   )6 &#125;;</code></pre><p>使用路径传参的接口</p><pre><code class="js">1 export const book = (book_id) =&gt; &#123;2  return get(3    &#39;booksDetail/&#39; + book_id + &#39;/&#39;4   )5 &#125;;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> Vue </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Vue拦截器 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>支付宝(Alipay)退款(refund)接口的开</title>
+      <link href="/blogs/2019/05/03/Sid-20-02/"/>
+      <url>/blogs/2019/05/03/Sid-20-02/</url>
+      
+        <content type="html"><![CDATA[<p>匆忙之中只考虑了支付，其实当交易发生之后一段时间内，由于买家或者卖家的原因需要退款时，卖家可以通过退款接口将支付款退还给买家，支付宝将在收到退款请求并且验证成功之后，按照退款规则将支付款按原路退到买家帐号上。 交易超过约定时间（签约时设置的可退款时间）的订单无法进行退款 支付宝退款支持单笔交易分多次退款，多次退款需要提交原支付订单的商户订单号和设置不同的退款单号。一笔退款失败后重新提交，要采用原来的退款单号。总退款金额不能超过用户实际支付金额。</p><p>那么根据支付宝的官方文档：<a href="https://docs.open.alipay.com/api_1/alipay.trade.refund">https://docs.open.alipay.com/api_1/alipay.trade.refund</a></p><p>扩充一下我们的支付宝支付类就可以了，从文档中可知，out_trade_no(支付订单号)，refund_amount(退款金额)，这两个参数是必须要传的，所以打开之前写好的pay.py文件，新增退款方法：</p><pre><code>#请求支付宝退款接口def api_alipay_trade_refund(self, refund_amount, out_trade_no=None, trade_no=None, **kwargs):        biz_content = &#123;            &quot;refund_amount&quot;: refund_amount        &#125;        biz_content.update(**kwargs)        if out_trade_no:            biz_content[&quot;out_trade_no&quot;] = out_trade_no        if trade_no:            biz_content[&quot;trade_no&quot;] = trade_no        data = self.build_body(&quot;alipay.trade.refund&quot;, biz_content)        url = self.__gateway + &quot;?&quot; + self.sign_data(data)        r = requests.get(url)        html = r.content.decode(&quot;utf-8&quot;)        return html</code></pre><p>然后在Django的视图方法中加一个退款视图</p><pre><code>def refund(request):    #实例化支付类    alipay = get_ali_object()    #调用退款方法    order_string = alipay.api_alipay_trade_refund(    #订单号，一定要注意，这是支付成功后返回的唯一订单号    out_trade_no=&quot;20190503214355&quot;,    #退款金额，注意精确到分，不要超过订单支付总金额    refund_amount=&quot;20.00&quot;,    #回调网址    notify_url=&#39;http://localhost:8000/md_admin/alipayreturn&#39;    )    return HttpResponse(order_string)</code></pre><p>值得一提的是，之前写得支付demo中，订单号的生成并不严谨，直接将time.time()拿来用了，其实应该将日期格式化这样订单号的可读性会增加，这里补上这个函数</p><pre><code>#根据日期生成唯一订单号def get_order_code():    order_no = str(time.strftime(&#39;%Y%m%d%H%M%S&#39;, time.localtime(time.time())))    return order_no</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos7.6中部署nginx1.16+uwsgi2.0.18+Django2.0.</title>
+      <link href="/blogs/2019/05/03/Sid-20-03/"/>
+      <url>/blogs/2019/05/03/Sid-20-03/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/nginx_01.png" alt="cover"></p><p>一直以来想写一篇完整的在阿里云服务器上部署Django服务结合uwsgi，并且通过nginx做反向代理。因为网上的攻略鱼龙混杂，加上技术不断更新，一些年代久远的文章很容易让人在部署的过程中掉坑里，无法自拔，所以本篇文章以最新的阿里云服务器centos7.6为背景，完全阐述如何部署，亲测可用，其实要说难点完全没有，只要按部就班，就不会有问题。</p><p>当你购买了阿里云的ecs，涉及ecs的有两个密码，一定要搞清楚，一个密码是远程链接密码，也就是通过浏览器连接服务器的密码，另外一个是实例密码，这个密码就是ecs的root密码，一般情况下，我们经常用到的是实例密码。</p><h4 id="安装python3-和-django-以及一些django扩展"><a href="#安装python3-和-django-以及一些django扩展" class="headerlink" title="安装python3 和 django 以及一些django扩展"></a><a href="about:blank#%E5%AE%89%E8%A3%85python3-%E5%92%8C-django-%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%BA%9Bdjango%E6%89%A9%E5%B1%95" title="安装python3 和 django 以及一些django扩展"></a>安装python3 和 django 以及一些django扩展</h4><pre><code>yum install epel-releaseyum install python36wget --no-check-certificate https://bootstrap.pypa.io/get-pip.pypython3 get-pip.py安装djangopip3 install pymysqlpip3 install pillowpip3 install pycryptodomepip3 install cryptographypip3 install Django==2.0.4pip3 install djangorestframeworkpip3 install django-cors-headerspip3 install celerypip3 install celery-with-redispip3 install django-celerypip3 install dwebsocket安装opencv-pythonyum  install  numpy  opencv*pip3 install opencv-pythonyum whatprovides libstdc++.so.6yum install libstdc++-4.4.7-3.el6.i686yum install libSM-1.2.2-2.el7.x86_64 --setopt=protected_multilib=false</code></pre><p>新建工程，并且测试</p><pre><code>django-admin startproject myprocd mypropython3 manage.py runserver 0.0.0.0:8000</code></pre><p>访问服务器 实例id：8000 查看</p><h4 id="安装mysql"><a href="#安装mysql" class="headerlink" title="安装mysql"></a><a href="about:blank#%E5%AE%89%E8%A3%85mysql" title="安装mysql"></a>安装mysql</h4><pre><code>wget &#39;https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm&#39;rpm -Uvh mysql57-community-release-el7-11.noarch.rpmyum install -y mysql-community-server#启动服务systemctl start mysqld#查看服务状态systemctl status mysqld查看数据库密码grep &#39;temporary password&#39; /var/log/mysqld.log</code></pre><pre><code>然后利用这个密码进入mysql命令行 mysql -uroot -p查到的密码SET PASSWORD = PASSWORD(&#39;Admin123!&#39;);设置远程登录GRANT ALL PRIVILEGES ON *.* TO &#39;root&#39;@&#39;%&#39; IDENTIFIED BY &#39;Admin123!&#39; WITH GRANT OPTION;flush privileges;vim /etc/my.cnf在[mysqld]下面添加，不需要分号字符集:注意是utf8而不是utf-8!character-set-server=utf8这时候使用show variables like &#39;char%&#39;;就可以查看到字符集都是utf8了sql支持group by语句sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION设置时区为东八区default-time_zone = &#39;+8:00&#39;重启服务systemctl restart mysqld设置开机启动systemctl enable mysqldsystemctl daemon-reload如果需要更改为简单的密码1.停止mysql服务systemctl stop mysqld.service2.修改配置文件无密码登录vim  /etc/my.cnf在最后加上skip-grant-tables保存3.启动mysqlsystemctl  start  mysqld.service4.登录mysqlmysql -u root注意这里不要加-p5.修改密码，mysql5.7用此语法use mysql;update mysql.user set authentication_string=password(&#39;123456&#39;) where user=&#39;root&#39; ;  6.回到第二部把刚加的那句删掉保存，重启mysql就可以了</code></pre><p>测试mysql服务</p><h4 id="安装redis"><a href="#安装redis" class="headerlink" title="安装redis"></a><a href="about:blank#%E5%AE%89%E8%A3%85redis" title="安装redis"></a>安装redis</h4><pre><code>yum install redis启动服务systemctl start redis查看版本号redis-cli --version设置开机启动systemctl enable redis.service</code></pre><p>测试redis服务</p><h4 id="安装mongodb"><a href="#安装mongodb" class="headerlink" title="安装mongodb"></a><a href="about:blank#%E5%AE%89%E8%A3%85mongodb" title="安装mongodb"></a>安装mongodb</h4><pre><code>vim /etc/yum.repos.d/mongodb-org-3.4.repo#添加以下内容：[mongodb-org-3.4]  name=MongoDB Repository  baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.4/x86_64/  gpgcheck=0enabled=1  gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc清空缓存yum makecache安装yum -y install mongodb-org启动服务systemctl start mongod.service停止服务systemctl stop mongod.service查看服务状态systemctl status mongod.service重启服务systemctl restart mongod.service</code></pre><p>测试mongo</p><h4 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a><a href="about:blank#%E5%AE%89%E8%A3%85nginx" title="安装nginx"></a>安装nginx</h4><pre><code>#设置源sudo rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm#安装yum install -y nginx#启动服务systemctl start nginx.service#关闭服务systemctl stop nginx.service#开机自启systemctl enable nginx.service#修改配置文件vim /etc/nginx/conf.d/default.conf改成下面的配置server &#123;    listen       80;    server_name  localhost;    access_log      /root/myweb_access.log;    error_log       /root/myweb_error.log;    client_max_body_size 75M;    location / &#123;        include uwsgi_params;        uwsgi_pass 127.0.0.1:8000;        uwsgi_param UWSGI_SCRIPT mypro.wsgi;        uwsgi_param UWSGI_CHDIR  /root/mypro;    &#125;    location /static &#123;        alias /root/mypro/static;    &#125;&#125;</code></pre><pre><code>设置项目权限chmod -R 755 /root/mypro</code></pre><pre><code>#修改配置vim /etc/nginx/nginx.conf将第一行改为 user root;然后重启nginx</code></pre><p>测试nginx服务,这里注意下，在不修改nginx配置文件的时候才会出现下面的欢迎页面，如果修改了以后是不能访问默认欢迎页面的</p><h4 id="安装uwsgi"><a href="#安装uwsgi" class="headerlink" title="安装uwsgi"></a><a href="about:blank#%E5%AE%89%E8%A3%85uwsgi" title="安装uwsgi"></a>安装uwsgi</h4><pre><code>uWSGI本身也是web服务器，但因为性能不高，通过nginx中转能够发挥更好的效果安装依赖yum install python36-devel安装pip3 install uwsgi软连接ln -s /usr/local/python3/bin/uwsgi /usr/bin/uwsgi进入项目目录启动服务uwsgi --http :8000 --module mypro.wsgi效果和 python3 manage.py runserver 0.0.0.0:8000一致热启动uwsgi --http :8000 --module mypro.wsgi --py-autoreload=1进入项目，编写uwsgi.ini配置文件 vim mypro_uwsgi.ini</code></pre><pre><code>[uwsgi]chdir           = /root/mypromodule          = mypro.wsgimaster          = trueprocesses       = 3socket            = 0.0.0.0:8000vacuum          = truepythonpath      = /usr/bin/python3pidfile = /root/mypro/mypro.piddaemonize  = /root/mypro/uwsgi.log</code></pre><pre><code>启动项目，这里需要注意下，如果你想用uwsgi独立访问网站，就需要把上面配置文件中的socket改成http，如果想用nginx代理，就写成socketuwsgi --ini mypro_uwsgi.ini后台启动uwsgi -d --ini mypro_uwsgi.ini</code></pre><p>杀死和关闭 uwsgi服务</p><pre><code>killall -s INT /usr/local/bin/uwsgi</code></pre><p>停止服务</p><pre><code>uwsgi --stop mypro.pid</code></pre><p>重载服务</p><pre><code>uwsgi --reload mypro.pid查看服务ps aux|grep uwsgi</code></pre><p>最后，nginx通过监听80端口反向代理uwsgi启动的django服务，访问网站进行测试</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+          <category> django </category>
+          
+          <category> nginx </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos上配置nginx+uwsgi+负载均衡配</title>
+      <link href="/blogs/2019/05/03/Sid-20-04/"/>
+      <url>/blogs/2019/05/03/Sid-20-04/</url>
+      
+        <content type="html"><![CDATA[<p>负载均衡在服务端开发中算是一个比较重要的特性。因为Nginx除了作为常规的Web服务器外，还会被大规模的用于反向代理后端，Nginx的异步框架可以处理很大的并发请求，把这些并发请求hold住之后就可以分发给后台服务端(backend servers, 后面简称backend)来做复杂的计算、处理和响应，并且在业务量增加的时候可以方便地扩容后台服务器。</p><p>说白了就是，随着业务和用户规模的增长，仅仅一台服务器无法肩负起高并发的响应，所以需要两台以上的服务器共同分担压力，而分担压力的媒介就是万能的Nginx。</p><p><img src="/blogs/images/nginx_02.jpeg"></p><p>首先，利用wsgi在不同的端口上起两个Django服务，比如8002和8003</p><p>然后修改nginx网站配置 vim /etc/nginx/conf.d/default.conf，将原uwsgi_pass注释，改成变量绑定</p><pre><code>server &#123;    listen       80;    server_name  localhost;    access_log      /root/myweb_access.log;    error_log       /root/myweb_error.log;    client_max_body_size 75M;    location / &#123;        include uwsgi_params;        #uwsgi_pass 127.0.0.1:8000;        uwsgi_pass mytest;        uwsgi_param UWSGI_SCRIPT mypro.wsgi;        uwsgi_param UWSGI_CHDIR  /root/mypro;    &#125;    location /static &#123;        alias /root/mypro/static;    &#125;&#125;</code></pre><p>然后修改主配置文件 vim /etc/nginx/nginx.conf，在http配置内添加负载均衡配置</p><pre><code>http &#123;    include       /etc/nginx/mime.types;    default_type  application/octet-stream;    log_format  main  &#39;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#39;                      &#39;$status $body_bytes_sent &quot;$http_referer&quot; &#39;                      &#39;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#39;;    access_log  /var/log/nginx/access.log  main;    sendfile        on;    #tcp_nopush     on;    keepalive_timeout  65;    #gzip  on;    include /etc/nginx/conf.d/*.conf;    upstream mytest &#123;    server 127.0.0.1:8002;  #负载均衡服务器群    server 127.0.0.1:8003;    &#125;&#125;</code></pre><p>然后重启服务即可：</p><pre><code>systemctl restart nginx.service</code></pre><p>值得注意的是常用的负载均衡策略有以下几种：</p><pre><code>1、轮询（默认）每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器down掉，能自动剔除。upstream backserver &#123;    server 192.168.0.14;    server 192.168.0.15;&#125;2、权重 weight指定轮询几率，weight和访问比率成正比，用于后端服务器性能不均的情况。upstream backserver &#123;    server 192.168.0.14 weight=3;    server 192.168.0.15 weight=7;&#125;3、ip_hash（ IP绑定）上述方式存在一个问题就是说，在负载均衡系统中，假如用户在某台服务器上登录了，那么该用户第二次请求的时候，因为我们是负载均衡系统，每次请求都会重新定位到服务器集群中的某一个，那么已经登录某一个服务器的用户再重新定位到另一个服务器，其登录信息将会丢失，这样显然是不妥的。我们可以采用ip_hash指令解决这个问题，如果客户已经访问了某个服务器，当用户再次访问时，会将该请求通过哈希算法，自动定位到该服务器。每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session的问题。upstream backserver &#123;    ip_hash;    server 192.168.0.14:88;    server 192.168.0.15:80;&#125;4、fair（第三方插件）按后端服务器的响应时间来分配请求，响应时间短的优先分配。upstream backserver &#123;    server server1;    server server2;    fair;&#125;5、url_hash（第三方插件）按访问url的hash结果来分配请求，使每个url定向到同一个后端服务器，后端服务器为缓存时比较有效。upstream backserver &#123;    server squid1:3128;    server squid2:3128;    hash $request_uri;    hash_method crc32;&#125;</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> nginx </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</title>
+      <link href="/blogs/2019/05/03/Sid-21-03/"/>
+      <url>/blogs/2019/05/03/Sid-21-03/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/ssh001.jpeg" alt="cover"></p><p>如果你购买了阿里云、腾讯云或者华为云等国内云服务上的服务器，默认登录都是以密码的方式，这就给潜在的渗透带来了机会，因为当你的linux服务器暴露在外网当中时，服务器就极有可能会遭到互联网上的扫描软件进行扫描，然后试图连接ssh端口进行暴力破解（穷举扫描），如果你不采取相对应的措施，迟早有一天服务器会被渗透者攻陷，这也就解释了为什么google cloud（谷歌云）和aws（亚马逊云）默认都是以秘钥的方式登录服务器。</p><p>基于密钥的安全验证必须为用户自己创建一对密钥（公钥和私钥），并把公钥放在需要访问的服务器上。当需要连接到远程服务器上时，客户端软件就会向服务器发出请求，请求使用私钥进行安全验证。服务器收到请求之后，先在该用户的根目录下寻找公钥，然后把它和发送过来的密钥进行比较。如果两个密钥一致，服务器就用公有的密钥加密“质询”，并把它发送给客户端软件（moba、iTerm）。客户端收到质询之后，就可以用本地的私人密钥解密再把它发送给服务器，这种方式是相当安全的，之前做支付宝支付我们就使用过秘钥的方式来加强支付安全性，详见：在Mac系统下生成新版支付宝（2019年4月）支付接口私钥和公钥。</p><p>本次我们将服务器的登录方式改造成秘钥+密码的形式，提高安全性，这里以Centos7.6为例子。</p><p>首先登录到服务器中，执行命令生成秘钥</p><pre><code>ssh-keygen -t rsa</code></pre><p>返回信息：</p><pre><code>Generating public/private rsa key pair.Enter file in which to save the key (.ssh/id_rsa): //直接回车，这是秘钥的地址Enter passphrase (empty for no passphrase):  //输入密钥密码（如果不设置，请直接回车。强烈建议输入1个密码- -）Enter same passphrase again:  //重复密钥密码</code></pre><p>之后将~/.ssh/id_rsa.pub 复制到 ~/.ssh/authorized_keys,并且赋予权限。</p><pre><code>cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keyschmod 600 ~/.ssh/authorized_keys</code></pre><p>随后修改/etc/ssh/sshd_config 文件，将PubkeyAuthentication 后面的值都改成yes ，保存。</p><p>重启sshd服务，让配置生效</p><pre><code>sudo service sshd restart</code></pre><p>此时，我们就可以测试一下是否可以用秘钥登录了，将服务器目录中的秘钥~/.ssh/id_rsa下载到本地</p><p>如果是windows用户，推荐使用MobaXterm，在ssh设置中，勾选使用秘钥并且选择本地秘钥即可。</p><p><img src="/blogs/images/ssh002.png"></p><p>如果平台是Mac os，这里推荐使用iTerm 4，同样在ssh设置中，选择运行ssh命令。</p><p><img src="/blogs/images/ssh003.jpg"></p><p>设置命令:</p><pre><code>ssh -p 22 root@你的ip -i 你的秘钥地址</code></pre><p>如果使用秘钥登录成功了，我们就可以考虑停用密码验证登录方式，修改/etc/ssh/sshd_config 文件将PasswordAuthentication yes 修改成 PasswordAuthentication no。</p><p>重启ssh服务</p><pre><code>sudo service sshd restart</code></pre><p>这样安全性确实大大提升了，但是也不是滴水不漏，因为你本地电脑也是有可能被入侵的，也就是存储在本机电脑的私钥有几率被窃取，那么有没有方法可以杜绝这种情况呢？</p><p>答案是可以的，那就是使用双因子认证（Two-factor authentication），业内也叫两步认证，这项技术苹果和谷歌都是率先使用，尤其是苹果的icloud爆出艳照门之后，两步验证就显得至关重要。</p><p>双因子认证，除了需要验证用户名密码外，还要结合另外一种实物设备，如Rsa令牌，或者手机。</p><p>如果我们把传统的用户名密码验证称为单因子认证，那么对比双因子认证，他们的区别如下：</p><p>1FA – What you know (e.g. a password, a pin)</p><p>2FA – What you have (e.g. a phone, a hardware token)</p><p>3FA – What you are (e.g. your fingerprints, you retina)</p><p>是的，你没看错，还有三因子认证，也就是通过指纹和视网膜验证，这个在手机上很普遍，大家都不陌生。</p><p>双因子认证的产品大致可以分成两类：</p><p>1、可以产生token的硬件设备</p><p>2、智能手机的app</p><p>手机短信验证码，登录微信公众号时的扫码确认都可以称为双因子认证。双因子认证，还会结合一个只有你有的硬件设备。只要这个专属的硬件设备不丢失（察觉这个设备丢失，比用户名密码泄露，会容易很多），就可以大大地提升账号的安全性。</p><p>这里我们使用google-authenticator，开启服务器双因子认证。</p><p>首先，去google的android应用市场，或者apple的appStore去安装：“Google Authenticator（google身份验证器）”。</p><p>然后登录要开启双因子认证登录的服务器，进行为服务器安装依赖</p><pre><code>yum -y install gcc gcc-c++ make wget pam-devel</code></pre><p>安装Google Authenticator</p><pre><code>wget http://google-authenticator.googlecode.com/files/libpam-google-authenticator-1.0-source.tar.bz2tar jxvf libpam-google-authenticator-1.0-source.tar.bz2cd libpam-google-authenticator-1.0makesudo make install</code></pre><p>使用SSH登录时调用google-authenticator模块</p><p>编辑文件/etc/pam.d/sshd，添加：</p><pre><code>auth   required     pam_google_authenticator.so</code></pre><p>再次编辑/etc/ssh/sshd_config，在文件中查找ChallengeResponseAuthentication和UsePAM，将后面的值改为 yes：</p><pre><code>ChallengeResponseAuthentication yesUsePAM yes</code></pre><p>再次重启ssh服务</p><pre><code>sudo service sshd restart</code></pre><p>随后，为用户root绑定认证</p><pre><code>su -google-authenticator</code></pre><p>返回命令</p><pre><code>Do you want authentication tokens to be time-based (y/n) yhttps://www.google.com/chart?chs=200x200&amp;chld=M|0&amp;cht=qr&amp;chl=otpauth://totp/root@google%3Fsecret%3DCKHMVUVJNTPYSPTQYour new secret key is: CKHMVUVJNTPYSPTQYour verification code is 734261Your emergency scratch codes are:6874833715176712302870107058590538041521</code></pre><p>生成了共享秘钥：CKHMVUVJNTPYSPTQ</p><p>接着一路yes</p><pre><code>Do you want me to update your &quot;/root/.google_authenticator&quot; file (y/n) yDo you want to disallow multiple uses of the same authenticationtoken? This restricts you to one login about every 30s, but it increasesyour chances to notice or even prevent man-in-the-middle attacks (y/n) yBy default, tokens are good for 30 seconds and in order to compensate forpossible time-skew between the client and the server, we allow an extratoken before and after the current time. If you experience problems with poortime synchronization, you can increase the window from its defaultsize of 1:30min to about 4min. Do you want to do so (y/n) yIf the computer that you are logging into isn&#39;t hardened against brute-forcelogin attempts, you can enable rate-limiting for the authentication module.By default, this limits attackers to no more than 3 login attempts every 30s.Do you want to enable rate-limiting (y/n) y</code></pre><p>随后再次登录服务器，会让我们输入一个验证码：</p><pre><code>verification code:</code></pre><p>此时打开手机上的google身份验证器App，输入对应的code即可</p><p><img src="/blogs/images/ssh004.png"></p><p>结语：网络千万条，安全第一条，无论多么高深的技术，离开了安全性，那么一切都将失去意义，是空谈，空谈误国，实干兴邦，网络安全，造福大家。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> shell </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Centos上配置nginx+uwsgi+负载均衡配</title>
+      <link href="/blogs/2019/05/03/Sid-20-05/"/>
+      <url>/blogs/2019/05/03/Sid-20-05/</url>
+      
+        <content type="html"><![CDATA[<p>如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。</p><p>申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录</p><p>证书后下载 key、pem后缀文件</p><p>然后打开nginx配置文件</p><pre><code>vim /etc/nginx/conf.d/default.conf</code></pre><p>同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口</p><pre><code>server &#123;    listen       80;    server_name  m9u.cn;    #这一步是http重定向到https，也可以不写    rewrite ^(.*)$ https://$&#123;server_name&#125;$1 permanent;    access_log      /root/md_vue_access.log;    error_log       /root/md_vue_error.log;    client_max_body_size 75M;    location / &#123;        root /root/fast_vue;        index index.html;        try_files $uri $uri/ /index.html;    &#125;    error_log    /root/fast_vue/error.log    error;&#125;server &#123;        listen 443;        server_name m9u.cn;        ssl on;        ssl_certificate      /root/2238250_m9u.cn.pem;        ssl_certificate_key  /root/2238250_m9u.cn.key;        ssl_session_timeout 5m;        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;        ssl_prefer_server_ciphers on;        location / &#123;        root /root/fast_vue;        index index.html;        try_files $uri $uri/ /index.html;        &#125;    &#125;</code></pre><p>重启nginx</p><pre><code>systemctl restart nginx.service</code></pre><p>使用https//访问域名</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> nginx </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> linux </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>一个sql查询排序小技</title>
+      <link href="/blogs/2019/04/21/Ssql-one/"/>
+      <url>/blogs/2019/04/21/Ssql-one/</url>
+      
+        <content type="html"><![CDATA[<pre><code>SELECT CASE WHEN (num = 0) THEN &#39;0&#39; WHEN (age &gt; 0 AND age &lt;= 10) THEN &#39;10&#39;WHEN (age &gt; 100 AND age &lt;=200) THEN &#39;100&#39; ELSE &#39;&gt;200&#39; END as num</code></pre><p>这样的情况，如果用别名排序的话，数据库字符串排序会变成乱序，导致难以浏览，所以可以在别名上加前缀<br>，这样就可以通过首字母排序了，比如:</p><pre><code>SELECT CASE WHEN (num = 0) THEN &#39;a. 0&#39; WHEN (age &gt; 0 AND age &lt;= 10) THEN &#39;b. 10&#39;WHEN (age &gt; 100 AND age &lt;=200) THEN &#39;c. 100&#39; ELSE &#39;d. &gt;200&#39; END as num</code></pre><p>这样select出来的数据就会按照你设想的方式排序了</p><p>本文转自 <a href="https://gaoleiv3e.cn/2019/04/21/Ssql-one/">https://gaoleiv3e.cn/2019/04/21/Ssql-one/</a>，如有侵权，请联系删除。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> mysql </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>添加基于websocket的实时通信，主动推送，聊天室及客服系</title>
+      <link href="/blogs/2019/04/17/Sid-19-04/"/>
+      <url>/blogs/2019/04/17/Sid-19-04/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/websocket.png" alt="cover"></p><p>websocket是个啥？</p><p>webSocket是一种在单个TCP连接上进行全双工通信的协议</p><p>webSocket使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输</p><p>现在，很多网站为了实现推送技术，所用的技术都是轮询。轮询是在特定的的时间间隔（如每1秒），由浏览器对服务器发出HTTP请求，然后由服务器返回最新的数据给客户端的浏览器。这种传统的模式带来很明显的缺点，即浏览器需要不断的向服务器发出请求，然而HTTP请求可能包含较长的头部，其中真正有效的数据可能只是很小的一部分，显然这样会浪费很多的带宽等资源。<br>而比较新的技术去做轮询的效果是Comet。这种技术虽然可以双向通信，但依然需要反复发出请求。而且在Comet中，普遍采用的长链接，也会消耗服务器资源。</p><p>在这种情况下，HTML5定义了WebSocket协议，能更好的节省服务器资源和带宽，并且能够更实时地进行通讯</p><p>轮询是几个意思？</p><p>轮询是最原始的实现实时Web应用的解决方案。轮询技术要求客户端以设定的时间间隔周期性地向服务端发送请求，频繁地查询是否有新的数据改动。明显地，这种方法会导致过多不必要的请求，浪费流量和服务器资源。总之就是一种low到爆炸的原始作坊水平的技术。</p><p>本文通过基于dwebsocket库来将socket嵌入到django服务中，使其服务兼具http协议和socket协议，能够达到实时前后端通信，后端主动推送等功能</p><p>安装dwebsocket库</p><pre><code>pip install -i https://pypi.tuna.tsinghua.edu.cn/simple dwebsocket</code></pre><p>定义视图文件的逻辑views.py</p><pre><code>#导入websocket装饰器from dwebsocket.decorators import accept_websocket#接收前端信息@accept_websocketdef test_socket(request):    if request.is_websocket():        for message in request.websocket:            c=str(message,encoding=&#39;utf-8&#39;)            print(c)            request.websocket.send(message)#主动推送消息@accept_websocketdef test_websocket(request):    if request.is_websocket():        while 1:            time.sleep(1) ## 向前端发送时间            dit = &#123;                &#39;time&#39;:time.strftime(&#39;%Y.%m.%d %H:%M:%S&#39;,time.localtime(time.time()))            &#125;            request.websocket.send(json.dumps(dit))</code></pre><p>路由配置urls.py</p><pre><code>#websocketpath(&#39;socket_test&#39;,TemplateView.as_view(template_name=&#39;md_admin/socket.html&#39;)),path(&#39;websocket_test&#39;,TemplateView.as_view(template_name=&#39;md_admin/socket_push.html&#39;)),path(&#39;test_socket&#39;,test_socket),path(&#39;test_websocket&#39;,test_websocket),</code></pre><p>定义前端发送消息的页面 socket.html</p><pre><code>&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;    &lt;meta charset=&quot;utf-8&quot;/&gt;    &lt;title&gt;Chat Room&lt;/title&gt;&lt;/head&gt;&lt;body&gt;    &lt;input id=&quot;chat-message-input&quot; type=&quot;text&quot; size=&quot;100&quot;/&gt;&lt;br/&gt;    &lt;input id=&quot;chat-message-submit&quot; type=&quot;button&quot; value=&quot;Send&quot; onclick=&#39;sendmessage()&#39;/&gt;&lt;/body&gt;&lt;script&gt;   //生成socket对象   var socket = new WebSocket(&quot;ws:&quot; + window.location.host + &quot;/md_admin/test_socket&quot;);            socket.onopen = function () &#123;                console.log(&#39;WebSocket open&#39;);//成功连接上Websocket            &#125;;            socket.onmessage = function (e) &#123;                console.log(&#39;message: &#39; + e.data);//打印服务端返回的数据            &#125;;            socket.onclose=function(e)&#123;              console.log(e);              socket.close(); //关闭TCP连接            &#125;;            if (socket.readyState == WebSocket.OPEN)&#123;            socket.onopen();            &#125;            window.s = socket;function sendmessage()&#123;    window.s.send(document.getElementById(&quot;chat-message-input&quot;).value);&#125;&lt;/script&gt;&lt;/html&gt;</code></pre><p>然后再定义一个页面，测试后台的主动推送socket_push.html</p><pre><code>&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;    &lt;meta charset=&quot;utf-8&quot;/&gt;    &lt;title&gt;Chat Room&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;script&gt;   //生成socket对象   var socket = new WebSocket(&quot;ws:&quot; + window.location.host + &quot;/md_admin/test_websocket&quot;);            socket.onopen = function () &#123;                console.log(&#39;WebSocket open&#39;);//成功连接上Websocket            &#125;;            socket.onmessage = function (e) &#123;                console.log(&#39;message: &#39; + e.data);//打印服务端返回的数据            &#125;;            socket.onclose=function(e)&#123;              console.log(e);              socket.close(); //关闭TCP连接            &#125;;            if (socket.readyState == WebSocket.OPEN)&#123;            socket.onopen();            &#125;&lt;/script&gt;&lt;/html&gt;</code></pre><p>可以看到，前后端无论是前端发送消息，还是后端主动推送消息，全部基于websocket，实现了真正意义上的实时通信，另外基于dwebsocket的聊天室可以在这里下载源码</p><p>本文转自 <a href="https://gaoleiv3e.cn/2020/04/17/Sid_19_04/">https://gaoleiv3e.cn/2020/04/17/Sid_19_04/</a>，如有侵权，请联系删除。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> websocket </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>在vscode中为Django配置专属的语法检测提醒，防止误报语法错</title>
+      <link href="/blogs/2019/04/16/Sid-19-03/"/>
+      <url>/blogs/2019/04/16/Sid-19-03/</url>
+      
+        <content type="html"><![CDATA[<p>Python官网（<a href="https://www.python.org/dev/peps/pep-0008/%EF%BC%89">https://www.python.org/dev/peps/pep-0008/）</a><br>专门有版块介绍推荐的python代码习惯，比如类，函数等的命名规则，遵守这些规则可以使自己的代码更加简明和易读。</p><p>然而pylint在面对django框架时表现的有些不足，因为django使用了大量的元编程(metaprograming)思想以及鸭子模型，以至于在程序运行时会修改不少对象的属性和行为，但是这样给pylint这样的语法检测程序带来了比较大的困难。典型的就是集成了django.db.models.Model的模型层对象在编译时没有objects属性，但是运行时却有，造成我们在编写代码时pylint会报”has no objects attributes”之类的错误，虽然不影响程序运行，但是很影响代码的阅读性。所以有人专门开发了pylint的插件pylint-django</p><p>这里简单介绍一下如何使用pylint-django来规避一些错误的误报</p><p>首先安装pylint以及pylint-django</p><pre><code>pip install pylint pylint_django</code></pre><p>然后在vscode的配置文件(settings.json)中加上如下配置</p><pre><code>&quot;python.linting.pylintArgs&quot;: [        &quot;--load-plugins&quot;,        &quot;pylint_django&quot;,        &quot;--errors-only&quot;    ]</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> django </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>python3.7.2+Django2.0.4 使用django-celery遇到问题</title>
+      <link href="/blogs/2019/03/20/Sid-19-02/"/>
+      <url>/blogs/2019/03/20/Sid-19-02/</url>
+      
+        <content type="html"><![CDATA[<h4 id="1-首先为啥要用celery"><a href="#1-首先为啥要用celery" class="headerlink" title="1) 首先为啥要用celery"></a><a href="about:blank#1-%E9%A6%96%E5%85%88%E4%B8%BA%E5%95%A5%E8%A6%81%E7%94%A8celery" title="1) 首先为啥要用celery"></a>1) 首先为啥要用celery</h4><p>因为在Django Web平台开发中，碰到一些请求执行的任务时间较长（几分钟），为了加快用户的响应时间，因此决定采用异步任务的方式在后台执行这些任务。与此同时，celery除了异步任务，还可以开启定时任务，方便调度。</p><h4 id="2-安装需要的软件包"><a href="#2-安装需要的软件包" class="headerlink" title="2) 安装需要的软件包"></a><a href="about:blank#2-%E5%AE%89%E8%A3%85%E9%9C%80%E8%A6%81%E7%9A%84%E8%BD%AF%E4%BB%B6%E5%8C%85" title="2) 安装需要的软件包"></a>2) 安装需要的软件包</h4><pre><code>pip install celerypip install celery-with-redispip install django-celery</code></pre><h4 id="3-因为async这个单词在python3-7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于："><a href="#3-因为async这个单词在python3-7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于：" class="headerlink" title="3) 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于："></a><a href="about:blank#3-%E5%9B%A0%E4%B8%BAasync%E8%BF%99%E4%B8%AA%E5%8D%95%E8%AF%8D%E5%9C%A8python3-7%E4%B8%AD%E5%B7%B2%E7%BB%8F%E4%BD%9C%E4%B8%BA%E7%B3%BB%E7%BB%9F%E5%85%B3%E9%94%AE%E5%AD%97%E5%AD%98%E5%9C%A8%E4%BA%86%EF%BC%8C%E6%89%80%E4%BB%A5%E8%A6%81%E6%8A%8A%E6%89%80%E6%9C%89%E6%B6%89%E5%8F%8A%E5%88%B0%E8%BF%99%E4%B8%AA%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%96%87%E4%BB%B6%E9%83%BD%E8%A6%81%E6%94%B9%E6%8E%89%EF%BC%8C%E6%B6%89%E5%8F%8A%E7%9A%84%E6%96%87%E4%BB%B6%E5%88%97%E8%A1%A8%E5%8C%85%E5%90%AB%E4%BD%86%E4%B8%8D%E9%99%90%E4%BA%8E%EF%BC%9A" title="3) 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于："></a>3) 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于：</h4><pre><code>/kombu/async/celery/utils/timer2.py/concurrency/asynpool.py/kombu/transport/redis.py/celery/worker/auto_scale.py,components,consumer,strategy</code></pre><h4 id="4-配置settings-py"><a href="#4-配置settings-py" class="headerlink" title="4) 配置settings.py"></a><a href="about:blank#4-%E9%85%8D%E7%BD%AEsettings-py" title="4) 配置settings.py"></a>4) 配置settings.py</h4><pre><code>INSTALLED_APPS = (   ...   &#39;djcelery&#39;,  &#125;# 末尾初始化import djcelerydjcelery.setup_loader()BROKER_URL = &#39;redis://127.0.0.1:6379/0&#39;CELERY_IMPORTS = (&#39;应用名称.task&#39;)</code></pre><h4 id="5-新增task-py"><a href="#5-新增task-py" class="headerlink" title="5) 新增task.py"></a><a href="about:blank#5-%E6%96%B0%E5%A2%9Etask-py" title="5) 新增task.py"></a>5) 新增task.py</h4><pre><code>#导入异步任务from celery.task import task#导入定时任务库from celery.decorators import periodic_task  #利用参数来设置任务周期@periodic_task(run_every=10)def some_task():    print(&#39;每10秒执行一次&#39;)    time.sleep(5)    print(&#39;执行完毕&#39;)    return True#通过装饰器来注册异步任务@taskdef task_mail():    #实例化一个对象    sendmail = SendMail(&#39;欢迎注册&#39;,&#39;您的验证码是1324&#39;,   [&#39;2910293685@qq.com&#39;],DEFAULT_FROM_EMAIL)    status = sendmail.do_send_mail()    if status:        print(&#39;发送邮件成功&#39;)    else:        print(&#39;发送邮件失败&#39;)</code></pre><h4 id="6-新增celery-py"><a href="#6-新增celery-py" class="headerlink" title="6) 新增celery.py"></a><a href="about:blank#6-%E6%96%B0%E5%A2%9Ecelery-py" title="6) 新增celery.py"></a>6) 新增celery.py</h4><pre><code>import osimport djangofrom celery import Celeryfrom django.conf import settings os.environ.setdefault(&#39;DJANGO_SETTINGS_MODULE&#39;, &#39;mymac.settings&#39;)django.setup()app = Celery(&#39;mymac&#39;)app.config_from_object(&#39;django.conf:settings&#39;)app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)@app.task(bind=True)def debug_task(self):    print(&#39;Request: &#123;0!r&#125;&#39;.format(self.request))</code></pre><h4 id="7-启动服务"><a href="#7-启动服务" class="headerlink" title="7) 启动服务"></a><a href="about:blank#7-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1" title="7) 启动服务"></a>7) 启动服务</h4><pre><code>#异步服务celery -A mymac worker -l info  #定时任务服务celery -A myproject beat -l info</code></pre><h4 id="8-但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2-6-10"><a href="#8-但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2-6-10" class="headerlink" title="8) 但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2.6.10"></a><a href="about:blank#8-%E4%BD%86%E6%98%AF%E6%89%A7%E8%A1%8C%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E7%9A%84%E6%97%B6%E5%80%99%E5%8F%91%E7%8E%B0%E6%9C%8D%E5%8A%A1%E8%87%AA%E5%8A%A8%E6%96%AD%E6%8E%89%EF%BC%8C%E6%98%AF%E5%9B%A0%E4%B8%BApython%E5%BA%93%E9%87%8C%E7%9A%84redis%E7%89%88%E6%9C%AC%E5%A4%AA%E9%AB%98%E4%BA%86%E3%80%82%E3%80%82%E3%80%82%E6%89%80%E4%BB%A5%E9%80%9A%E8%BF%87pip%E5%8D%B8%E8%BD%BD%EF%BC%8C%E7%84%B6%E5%90%8E%E6%8C%87%E5%AE%9A%E5%AE%89%E8%A3%85%E4%BD%8E%E7%89%88%E6%9C%AC2-6-10" title="8) 但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2.6.10"></a>8) 但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2.6.10</h4><pre><code>pip uninstall redispip install redis==2.6.10</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> mysql </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>mac系统中进入mysql遇到Access denied for user &#39;root&#39;@&#39;localhost</title>
+      <link href="/blogs/2019/03/20/Ssql-err/"/>
+      <url>/blogs/2019/03/20/Ssql-err/</url>
+      
+        <content type="html"><![CDATA[<h4 id="Access-denied-for-user-‘root’-’localhost’-using-password-YES"><a href="#Access-denied-for-user-‘root’-’localhost’-using-password-YES" class="headerlink" title="Access denied for user ‘root’@’localhost’ (using password: YES)"></a><a href="about:blank#Access-denied-for-user-%E2%80%98root%E2%80%99-%E2%80%99localhost%E2%80%99-using-password-YES" title="Access denied for user ‘root’@’localhost’ (using password: YES)"></a>Access denied for user ‘root’@’localhost’ (using password: YES)</h4><p>1)Stop mysql (Kill mysql process or run following command) 停止mysql服务</p><pre><code>sudo /usr/local/mysql/support-files/mysql.server stop</code></pre><ol start="2"><li> Start it in safe mode 用安全模式进入mysql 这一步可以看成是不输入密码就进入mysql命令行</li></ol><pre><code>sudo mysqld_safe --skip-grant-tables</code></pre><ol start="3"><li> Open another terminal and run the following command (Keep last terminal open) 在另一个窗口中进入mysql</li></ol><pre><code>mysql -u root</code></pre><ol start="4"><li> Run the following command with suitable new password on the mysql console 修改密码</li></ol><pre><code>UPDATE mysql.user SET Password=PASSWORD(&#39;password&#39;) WHERE User=&#39;root&#39;;</code></pre><ol start="5"><li>刷新一下缓存```<br> FLUSH PRIVILEGES; <pre><code></code></pre></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> mysql </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>flask SQLAlchemy 的安装和基础应用</title>
+      <link href="/blogs/2018/12/23/Sflas-two/"/>
+      <url>/blogs/2018/12/23/Sflas-two/</url>
+      
+        <content type="html"><![CDATA[<p>SQLAlchemy是一个基于Python实现的ORM框架。该框架建立在 DB API之上，使用关系对象映射进行数据库操作，简言之便是：将类和对象转换成SQL，然后使用数据API执行SQL并获取执行结果。</p><h3 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h3><pre><code>pip install flask-sqlalchemy</code></pre><p>注意sqlalchemy 依赖于 pymysql 模块，确保pymysql 被正确安装</p><pre><code>pip install pymysql</code></pre><h3 id="建立对象"><a href="#建立对象" class="headerlink" title="建立对象"></a>建立对象</h3><pre><code>#导入第三方连接库sql点金术from flask_sqlalchemy import SQLAlchemy#建立对象app = Flask(__name__)#载入配置文件app.config.from_pyfile(&#39;config.ini&#39;)# #指定数据库连接还有库名# app.config[&#39;SQLALCHEMY_DATABASE_URI&#39;] = &#39;mysql+pymysql://root:123456@127.0.0.1:3306/myflask?charset=utf8&#39;#指定配置，用来省略提交操作#app.config[&#39;SQLALCHEMY_COMMIT_ON_TEARDOWN&#39;] = True#建立数据库对象db = SQLAlchemy(app) #建立数据库类，用来映射数据库表,将数据库的模型作为参数传入class User(db.Model):    #声明表名    __tablename__ = &#39;user&#39;    #建立字段函数    id = db.Column(db.Integer,primary_key=True)    name = db.Column(db.String(200))    password = db.Column(db.String(200))</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> flask </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> flask </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>虚拟环境安装命令</title>
+      <link href="/blogs/2018/12/17/Sflask-one/"/>
+      <url>/blogs/2018/12/17/Sflask-one/</url>
+      
+        <content type="html"><![CDATA[<p>虚拟环境安装命令</p><pre><code>pip install virtualenv</code></pre><p>进入项目安装虚拟目录的命令</p><pre><code>virtualenv venv</code></pre><p>激活虚拟环境</p><pre><code>activate</code></pre><p>离开虚拟环境</p><pre><code>deactivate</code></pre><p>本文转自 <a href="https://gaoleiv3e.cn/2018/12/17/Sflask-one/">https://gaoleiv3e.cn/2018/12/17/Sflask-one/</a>，如有侵权，请联系删除。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> flask </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> flask </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>异步及异步消费</title>
+      <link href="/blogs/2018/02/12/%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9/"/>
+      <url>/blogs/2018/02/12/%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9/</url>
+      
+        <content type="html"><![CDATA[<p><img src="/blogs/images/lake.png" alt="cover"></p><h3 id="一、asyncio"><a href="#一、asyncio" class="headerlink" title="一、asyncio"></a>一、asyncio</h3><p>同步代码:</p><pre><code class="js">import timedef hello():    time.sleep(1)def run():    for i in range(5):        hello()        print(&#39;Hello World:%s&#39; % time.time())  if __name__ == &#39;__main__&#39;:    run()</code></pre><p>输出：</p><pre><code class="js">Hello World:1527595175Hello World:1527595176Hello World:1527595177Hello World:1527595178Hello World:1527595179</code></pre><p>异步代码:</p><pre><code class="js">import timeimport asyncio# 定义异步函数async def hello():    asyncio.sleep(1)    print(&#39;Hello World:%s&#39; % time.time())def run():    for i in range(5):        loop.run_until_complete(hello())loop = asyncio.get_event_loop()if __name__ ==&#39;__main__&#39;:    run()</code></pre><p>输出:</p><pre><code class="js">Hello World:1527595104Hello World:1527595104Hello World:1527595104Hello World:1527595104Hello World:1527595104</code></pre><p>async def 用来定义异步函数，其内部有异步操作。每个线程有一个事件循环，主线程调用asyncio.get_event_loop()时会创建事件循环，你需要把异步的任务丢给这个循环的run_until_complete()方法，事件循环会安排协同程序的执行。</p><h3 id="二、控制任务"><a href="#二、控制任务" class="headerlink" title="二、控制任务"></a>二、控制任务</h3><p>通过asyncio.wait()可以控制多任务</p><p>asyncio.wait()是一个协程，不会阻塞，立即返回，返回的是协程对象。传入的参数是future或协程构成的可迭代对象。最后将返回值传给run_until_complete()加入事件循环</p><pre><code class="js">import asyncioasync def coroutine_example(name):    print(&#39;正在执行:&#39;, name)    await asyncio.sleep(1)    print(&#39;执行完毕:&#39;, name)loop = asyncio.get_event_loop()tasks = [coroutine_example(&#39;nb&#39; + str(i)) for i in range(3)]wait_coro = asyncio.wait(tasks)loop.run_until_complete(wait_coro)loop.close()</code></pre><p>输出结果:</p><pre><code class="js">正在执行:nb_1正在执行:nb_0正在执行:nb_2执行完毕:nb_1执行完毕:nb_0执行完毕:nb_2</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> python </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 异步消费 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
