@@ -1,0 +1,69 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>Centos上配置nginx+uwsgi+负载均衡配</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。
+申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录
+证书后下载 key、pem后缀文件
+然后打开nginx配置文件
+vim /etc/nginx/conf.d/default.conf
+同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口
+server &amp;#123;
+    listen       80;
+    server_name  m9u.cn;
+    #这一步是http.."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Centos上配置nginx+uwsgi+负载均衡配</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile is-hidden"></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/linux"><i class="tag post-item-tag">linux</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">Centos上配置nginx+uwsgi+负载均衡配</h1><time class="has-text-grey" datetime="2019-05-03T06:59:21.000Z">2019-05-03</time><article class="mt-2 post-content"><p>如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。</p>
+<p>申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录</p>
+<p>证书后下载 key、pem后缀文件</p>
+<p>然后打开nginx配置文件</p>
+<pre><code>vim /etc/nginx/conf.d/default.conf</code></pre>
+<p>同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口</p>
+<pre><code>server &#123;
+    listen       80;
+    server_name  m9u.cn;
+    #这一步是http重定向到https，也可以不写
+    rewrite ^(.*)$ https://$&#123;server_name&#125;$1 permanent;
+    access_log      /root/md_vue_access.log;
+    error_log       /root/md_vue_error.log;
+
+
+    client_max_body_size 75M;
+
+
+    location / &#123;
+
+        root /root/fast_vue;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    &#125;
+
+    error_log    /root/fast_vue/error.log    error;
+
+&#125;
+
+server &#123;
+
+        listen 443;
+        server_name m9u.cn;
+        ssl on;
+        ssl_certificate      /root/2238250_m9u.cn.pem;
+        ssl_certificate_key  /root/2238250_m9u.cn.key;
+        ssl_session_timeout 5m;
+        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+
+        location / &#123;
+
+        root /root/fast_vue;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+
+        &#125;
+
+    &#125;</code></pre>
+<p>重启nginx</p>
+<pre><code>systemctl restart nginx.service</code></pre>
+<p>使用https//访问域名</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2019/05/03/Sid-20-04/" title="Centos上配置nginx+uwsgi+负载均衡配"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: Centos上配置nginx+uwsgi+负载均衡配</span></a><a class="button is-default" href="/blogs/2019/05/03/Sid-21-03/" title="别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥"><span class="has-text-weight-semibold">下一页: 别让你的服务器(vps)沦为肉鸡(ssh暴力破解)，密钥验证、双向因子登录值得拥</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>

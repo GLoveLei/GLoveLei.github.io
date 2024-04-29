@@ -1,0 +1,131 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>添加基于websocket的实时通信，主动推送，聊天室及客服系</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="
+websocket是个啥？
+webSocket是一种在单个TCP连接上进行全双工通信的协议
+webSocket使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输
+现在，很多网站为了实现推送技术，所用的技术都是轮询。轮询是在特定的的时间间隔（如每1秒），由浏览器对服务器发出HTTP请求，然后由服务器返回最新的数据给客户端的浏览器。这种传统的模式带来很明显的缺点，即浏览器需要不断的向服务器发出请求，然而HTTP请求可能包含较长的头部，其中真正有效的数据可能只是很小的一部分，显然这样会浪费很多的带宽等资源。而比较新的技术去做轮询的效果是Comet。这种技术虽然可以双.."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">添加基于websocket的实时通信，主动推送，聊天室及客服系</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile is-hidden"></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/python"><i class="tag post-item-tag">python</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">添加基于websocket的实时通信，主动推送，聊天室及客服系</h1><time class="has-text-grey" datetime="2019-04-17T06:59:21.000Z">2019-04-17</time><article class="mt-2 post-content"><p><img src="/blogs/images/websocket.png" alt="cover"></p>
+<p>websocket是个啥？</p>
+<p>webSocket是一种在单个TCP连接上进行全双工通信的协议</p>
+<p>webSocket使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输</p>
+<p>现在，很多网站为了实现推送技术，所用的技术都是轮询。轮询是在特定的的时间间隔（如每1秒），由浏览器对服务器发出HTTP请求，然后由服务器返回最新的数据给客户端的浏览器。这种传统的模式带来很明显的缺点，即浏览器需要不断的向服务器发出请求，然而HTTP请求可能包含较长的头部，其中真正有效的数据可能只是很小的一部分，显然这样会浪费很多的带宽等资源。<br>而比较新的技术去做轮询的效果是Comet。这种技术虽然可以双向通信，但依然需要反复发出请求。而且在Comet中，普遍采用的长链接，也会消耗服务器资源。</p>
+<p>在这种情况下，HTML5定义了WebSocket协议，能更好的节省服务器资源和带宽，并且能够更实时地进行通讯</p>
+<p>轮询是几个意思？</p>
+<p>轮询是最原始的实现实时Web应用的解决方案。轮询技术要求客户端以设定的时间间隔周期性地向服务端发送请求，频繁地查询是否有新的数据改动。明显地，这种方法会导致过多不必要的请求，浪费流量和服务器资源。总之就是一种low到爆炸的原始作坊水平的技术。</p>
+<p>本文通过基于dwebsocket库来将socket嵌入到django服务中，使其服务兼具http协议和socket协议，能够达到实时前后端通信，后端主动推送等功能</p>
+<p>安装dwebsocket库</p>
+<pre><code>pip install -i https://pypi.tuna.tsinghua.edu.cn/simple dwebsocket</code></pre>
+<p>定义视图文件的逻辑views.py</p>
+<pre><code>#导入websocket装饰器
+from dwebsocket.decorators import accept_websocket
+
+
+#接收前端信息
+@accept_websocket
+def test_socket(request):
+    if request.is_websocket():
+        for message in request.websocket:
+            c=str(message,encoding=&#39;utf-8&#39;)
+            print(c)
+            request.websocket.send(message)
+
+#主动推送消息
+@accept_websocket
+def test_websocket(request):
+    if request.is_websocket():
+        while 1:
+            time.sleep(1) ## 向前端发送时间
+            dit = &#123;
+                &#39;time&#39;:time.strftime(&#39;%Y.%m.%d %H:%M:%S&#39;,time.localtime(time.time()))
+            &#125;
+            request.websocket.send(json.dumps(dit))</code></pre>
+<p>路由配置urls.py</p>
+<pre><code>#websocket
+path(&#39;socket_test&#39;,TemplateView.as_view(template_name=&#39;md_admin/socket.html&#39;)),
+path(&#39;websocket_test&#39;,TemplateView.as_view(template_name=&#39;md_admin/socket_push.html&#39;)),
+path(&#39;test_socket&#39;,test_socket),
+path(&#39;test_websocket&#39;,test_websocket),</code></pre>
+<p>定义前端发送消息的页面 socket.html</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;/&gt;
+    &lt;title&gt;Chat Room&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;input id=&quot;chat-message-input&quot; type=&quot;text&quot; size=&quot;100&quot;/&gt;&lt;br/&gt;
+    &lt;input id=&quot;chat-message-submit&quot; type=&quot;button&quot; value=&quot;Send&quot; onclick=&#39;sendmessage()&#39;/&gt;
+&lt;/body&gt;
+&lt;script&gt;
+
+   //生成socket对象
+   var socket = new WebSocket(&quot;ws:&quot; + window.location.host + &quot;/md_admin/test_socket&quot;);
+
+
+            socket.onopen = function () &#123;
+                console.log(&#39;WebSocket open&#39;);//成功连接上Websocket
+            &#125;;
+            socket.onmessage = function (e) &#123;
+                console.log(&#39;message: &#39; + e.data);//打印服务端返回的数据
+            &#125;;
+            socket.onclose=function(e)&#123;
+              console.log(e);
+              socket.close(); //关闭TCP连接
+            &#125;;
+            if (socket.readyState == WebSocket.OPEN)&#123;
+            socket.onopen();
+            &#125;
+
+            window.s = socket;
+
+function sendmessage()&#123;
+
+    window.s.send(document.getElementById(&quot;chat-message-input&quot;).value);
+
+&#125;
+
+
+&lt;/script&gt;
+&lt;/html&gt;</code></pre>
+<p>然后再定义一个页面，测试后台的主动推送socket_push.html</p>
+<pre><code>
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;/&gt;
+    &lt;title&gt;Chat Room&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;/body&gt;
+&lt;script&gt;
+
+   //生成socket对象
+   var socket = new WebSocket(&quot;ws:&quot; + window.location.host + &quot;/md_admin/test_websocket&quot;);
+
+
+            socket.onopen = function () &#123;
+                console.log(&#39;WebSocket open&#39;);//成功连接上Websocket
+            &#125;;
+            socket.onmessage = function (e) &#123;
+                console.log(&#39;message: &#39; + e.data);//打印服务端返回的数据
+            &#125;;
+            socket.onclose=function(e)&#123;
+              console.log(e);
+              socket.close(); //关闭TCP连接
+            &#125;;
+            if (socket.readyState == WebSocket.OPEN)&#123;
+            socket.onopen();
+            &#125;
+
+
+
+
+&lt;/script&gt;
+&lt;/html&gt;</code></pre>
+<p>可以看到，前后端无论是前端发送消息，还是后端主动推送消息，全部基于websocket，实现了真正意义上的实时通信，另外基于dwebsocket的聊天室可以在这里下载源码</p>
+<p>本文转自 <a target="_blank" rel="noopener" href="https://gaoleiv3e.cn/2020/04/17/Sid_19_04/">https://gaoleiv3e.cn/2020/04/17/Sid_19_04/</a>，如有侵权，请联系删除。</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2019/04/21/Ssql-one/" title="一个sql查询排序小技"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: 一个sql查询排序小技</span></a><a class="button is-default" href="/blogs/2019/04/16/Sid-19-03/" title="在vscode中为Django配置专属的语法检测提醒，防止误报语法错"><span class="has-text-weight-semibold">下一页: 在vscode中为Django配置专属的语法检测提醒，防止误报语法错</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>

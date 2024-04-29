@@ -1,0 +1,771 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>工单项目</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="一、工单项目理解工单系统拥有用户，先实现用户登录、修改用户权限姓名等…然后进行工单的添加，审核人和私信聊天
+二、用户的创建
+model.py:
+class Base(models.Model):
+    # 创建时间
+    create_time = models.DateTimeField(default=timezone.now, null=True)
+
+    class Meta:
+        abstract = True
+
+
+# 用户类
+class User(Base):
+    username = models.CharField(max_length=100, unique=True,verbose_name=&amp;#39;用户名&amp;#39;)
+    password = models..."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">工单项目</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile is-hidden"></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/%E5%B7%A5%E5%8D%95%E9%A1%B9%E7%9B%AE"><i class="tag post-item-tag">工单项目</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">工单项目</h1><time class="has-text-grey" datetime="2021-03-28T06:59:21.000Z">2021-03-28</time><article class="mt-2 post-content"><p><img src="/blogs/images/river.png" alt="cover"><br>一、工单项目理解<br>工单系统拥有用户，先实现用户登录、修改用户权限姓名等…然后进行工单的添加，审核人和私信聊天</p>
+<p>二、用户的创建</p>
+<p>model.py:</p>
+<pre><code class="js">class Base(models.Model):
+    # 创建时间
+    create_time = models.DateTimeField(default=timezone.now, null=True)
+
+    class Meta:
+        abstract = True
+
+
+# 用户类
+class User(Base):
+    username = models.CharField(max_length=100, unique=True,verbose_name=&#39;用户名&#39;)
+    password = models.CharField(max_length=200,verbose_name=&#39;密码&#39;)
+    phone = models.CharField(max_length=100, unique=True, null=True,verbose_name=&#39;电话&#39;)
+    level = models.IntegerField(default=1,verbose_name=&#39;用户等级&#39;)
+    sf = models.BooleanField(default=False,verbose_name=&#39;三方登录&#39;)
+    sf_type = models.CharField(max_length=20, verbose_name=&quot;三方类型&quot;, null=True)
+    sf_id = models.IntegerField(null=True,verbose_name=&#39;三方登录id&#39;)
+
+    class Meta:
+        db_table = &quot;user&quot;</code></pre>
+<p>实现用户名怎删改查</p>
+<pre><code class="js">class GendertUUid(APIView):
+    def get(self, request):
+        &quot;&quot;&quot;
+        返回验证码图片
+        :param request:
+        :return:
+        &quot;&quot;&quot;
+        #  uuid
+        uuid = request.GET.get(&#39;id&#39;)
+
+        # 生成随机数
+        random_num = random_str()
+
+        # 生成图片
+        image = make_verify_image(random_num, uuid)
+
+        # 返回图片
+        return HttpResponse(image, content_type=&#39;image/jpeg&#39;)
+
+
+class Refresh(APIView):
+    def post(self, request):
+        username = request.data.get(&#39;username&#39;)
+        password = request.data.get(&#39;password&#39;)
+        phone = request.data.get(&#39;phone&#39;)
+        # 用户输入的验证码
+        crossing = request.data.get(&#39;crossing&#39;)
+        print(crossing)
+        # uuid
+        uuid = request.data.get(&#39;uuid&#39;)
+        # redis存储的验证码
+        redis_uuid = str(r.get(uuid))
+        print(redis_uuid)
+        # 验证手机号
+        user_phone = User.objects.filter(phone=phone).first()
+        if user_phone:
+            return Response(&#123;&#39;msg&#39;: &#39;手机号已被绑定,请重新输入!&#39;, &#39;code&#39;: 10006&#125;)
+
+        #  验证用户名不能为空
+        if username == &#39;&#39;:
+            return Response(&#123;&#39;msg&#39;: &#39;用户名不能为空!&#39;, &#39;code&#39;: 10004&#125;)
+
+        #  正则验证手机号格式
+        new_phone = re.match(&#39;^1[3-9]&#123;1&#125;[0-9]&#123;9&#125;$&#39;, phone)
+        if new_phone:
+            pass
+        else:
+            return Response(&#123;&#39;msg&#39;: &#39;手机号格式不符合!&#39;, &#39;code&#39;: 10005&#125;)
+
+        # 与redis的验证码作比较
+        if crossing == redis_uuid:
+
+            user = User.objects.filter(username=username).first()
+            #  验证用户名是否重复
+            if user:
+                return Response(&#123;&#39;msg&#39;: &#39;用户名重复,请重新输入!&#39;, &#39;code&#39;: 10002&#125;)
+            else:
+                #  注册
+                User.objects.create(
+                    username=username,
+                    password=password,
+                    phone=phone
+
+                )
+
+                return Response(&#123;&#39;msg&#39;: &#39;注册成功!&#39;, &#39;code&#39;: 10000&#125;)
+        else:
+            return Response(&#123;&#39;msg&#39;: &#39;验证码输入错误,请重新输入!&#39;, &#39;code&#39;: 10001&#125;)
+
+class SelectUser(APIView):
+    def get(self, request):
+        username = request.GET.get(&#39;username&#39;)
+        if username:
+            queryset = User.objects.filter(username=username)
+            ser = UserSer1(queryset, many=True)
+            return Response(ser.data)
+        else:
+            queryset = User.objects.all()
+            ser = UserSer1(queryset, many=True)
+            return Response(ser.data)
+
+    def delete(self, request):
+        id = request.GET.get(&#39;id&#39;)
+        if id:
+            User.objects.filter(id=id).delete()
+            return Response(&#123;&#39;msg&#39;: &#39;删除成功&#39;&#125;)
+        else:
+            return Response(&#123;&#39;msg&#39;: &#39;没有该id&#39;&#125;)
+
+
+class PutUser(APIView):
+    def put(self, request):
+        username = request.data.get(&#39;username&#39;)
+        new_username = request.data.get(&#39;new_username&#39;, username)
+        password = request.data.get(&#39;password&#39;)
+        phone = request.data.get(&#39;phone&#39;)
+        data = putUser(username, new_username, password, phone)
+        print(data)
+        return Response(data)    </code></pre>
+<p>实现登录输入错误5次不允许登录</p>
+<pre><code class="js">class LoginUser(APIView):
+    def post(self, request):
+        username = request.data.get(&#39;username&#39;)
+        password = request.data.get(&#39;password&#39;)
+
+        user = User.objects.filter(username=username, password=password).first()
+
+        if user:
+
+            #  实现状态保持
+            payload = &#123;
+                &#39;exp&#39;: datetime.datetime.utcnow() + datetime.timedelta(hours=10),
+                &#39;uid&#39;: user.id,
+            &#125;
+            token = jwt.encode(payload=payload, key=SECRET_KEY)
+            return Response(&#123;&#39;msg&#39;: &#39;登录成功&#39;, &#39;code&#39;: 10000, &#39;token&#39;: token, &#39;uid&#39;: user.id, &#39;username&#39;: user.username&#125;)
+
+        else:
+
+            key = &#39;user_%s&#39; % username
+            key_black = &#39;user_black&#39;
+
+            # 只要黑名单有该用户直接封杀
+            if r.get(key_black) == key:
+                return Response(&#123;&#39;msg&#39;: &#39;您的账号已经被封禁1分钟!&#39;, &#39;code&#39;: 44444&#125;)
+            else:
+                # 判断用户是否存在
+                if r.keys(key):
+                    #  五分钟内出现五次以上
+                    if int(r.get(key)) &gt;= 5:
+                        r.set(key, 0)  # 清除该用户次数
+                        r.set(key_black, key)  # 清除同时加入黑名单
+                        r.expire(key_black, 60)  # 并且设置封禁时间
+                        return Response(&#123;&#39;msg&#39;: &#39;您的账号已经被封禁1分钟!&#39;, &#39;code&#39;: 44444&#125;)
+                    # 小于五次次数 做累加
+                    else:
+                        r.incrby(key, 1)
+                        return Response(&#123;&#39;msg&#39;: &#39;账号或密码输入错,请重新输入!&#39;, &#39;code&#39;: 10004&#125;)
+                # 不存在则存取
+                else:
+                    r.set(key, 1)
+                    r.expire(key, 30)
+                    return Response(&#123;&#39;msg&#39;: &#39;账号或密码输入错,请重新输入!&#39;, &#39;code&#39;: 10004&#125;)</code></pre>
+<p>实现三方登录 钉钉、gitee</p>
+<pre><code class="js">class GiteeBack(APIView):
+
+    def get(self, request):
+
+        code = request.GET.get(&quot;code&quot;, None)
+
+        r = requests.post(
+            &quot;https://gitee.com/oauth/token?grant_type=authorization_code&amp;code=&quot; + code + &quot;&amp;client_id=&quot; + CLIENT_ID + &quot;&amp;redirect_uri=http://127.0.0.1:8000/gitee_back&amp;client_secret=&quot; + CLIENT_SECRET)
+        # print(r.text)
+        mess = eval(r.text)
+        # print(type(mess))
+        # print(mess[&#39;access_token&#39;])
+        r = requests.get(&quot;https://gitee.com/api/v5/user?access_token=&quot; + mess[&#39;access_token&#39;])
+        print(r.text)
+        res = json.loads(r.text)
+        user = User.objects.filter(sf_type=&#39;0b001&#39;, sf_id=res[&#39;id&#39;]).first()
+        if user:
+            user.username = res[&#39;name&#39;]
+            user.save()
+        else:
+            User.objects.create(username=res[&#39;name&#39;], sf_type=&#39;0b001&#39;, sf_id=res[&#39;id&#39;], password=res[&#39;name&#39;],
+                                sf=True)
+        return redirect(&#39;http://127.0.0.1:8080/#/?username=&#123;&#125;&#39;.format(res[&#39;name&#39;]))
+
+import hmac
+import base64
+from hashlib import sha256
+import urllib
+
+
+class DingBack(View):
+    def get(self, request):
+        # 获取code
+        code = request.GET.get(&quot;code&quot;)
+
+        t = time.time()
+        # 时间戳
+        timestamp = str((int(round(t * 1000))))
+        appSecret = APP_SECRET
+        # 构造签名
+        signature = base64.b64encode(
+            hmac.new(appSecret.encode(&#39;utf-8&#39;), timestamp.encode(&#39;utf-8&#39;), digestmod=sha256).digest())
+        # 请求接口，换取钉钉用户名
+        payload = &#123;&#39;tmp_auth_code&#39;: code&#125;
+        headers = &#123;&#39;Content-Type&#39;: &#39;application/json&#39;&#125;
+        res = requests.post(&#39;https://oapi.dingtalk.com/sns/getuserinfo_bycode?signature=&#39; + urllib.parse.quote(
+            signature.decode(&quot;utf-8&quot;)) + &quot;&amp;timestamp=&quot; + timestamp + &quot;&amp;accessKey=dingoausbsbnopkbfhhqvt&quot;,
+                            data=json.dumps(payload), headers=headers)
+
+        res_dict = json.loads(res.text)[&#39;user_info&#39;]
+        print(res_dict[&#39;nick&#39;])
+        user = User.objects.filter(sf_type=&#39;0b010&#39;, username=res_dict[&#39;nick&#39;]).first()
+        if user:
+            user.username = res_dict[&#39;nick&#39;]
+            user.save()
+        else:
+            User.objects.create(username=res_dict[&#39;nick&#39;], sf_type=&#39;0b010&#39;, password=res_dict[&#39;nick&#39;], sf=True)
+            return redirect(&#39;http://127.0.0.1:8080/#/?username=&#123;&#125;&#39;.format(res_dict[&#39;nick&#39;]))</code></pre>
+<p>添加查询工单名称(利用递归)</p>
+<pre><code class="js">def ca(pid):
+    # 查询工单里所有与当前审批人对于的数据
+    queryset = Gongdan.objects.filter(pid=pid)
+    data = GongdanSer(queryset, many=True).data
+    # 定义新列表
+    lis = []
+    # 循环查询到的数据
+    for i in data:
+        # 利用递归无线查询id
+        i[&#39;x&#39;] = ca(i[&#39;id&#39;])
+        # 添加到列表中
+        lis.append(i)
+    # 返回列表
+    return lis
+
+
+class GongdanView(APIView):
+    def post(self, request):
+        name = request.data.get(&#39;name&#39;)
+        pid = request.data.get(&#39;pid&#39;)
+        # 当前审批人是否存在
+        if pid:
+            Gongdan.objects.create(name=name, pid=pid)
+        else:
+            Gongdan.objects.create(name=name)
+
+        return Response(&#123;&#39;msg&#39;: &#39;添加成功&#39;&#125;)
+
+    def get(self, request):
+        # 查询工单所有数据
+        queryset = Gongdan.objects.all()
+        all = GongdanSer(queryset, many=True).data
+        return Response(&#123;&quot;next&quot;: ca(0), &#39;all&#39;: all&#125;)</code></pre>
+<p>添加查询工单详情并给审核人发送消息</p>
+<pre><code class="js">class QingJiaView(APIView):
+    def get(self, request):
+        pid = request.GET.get(&#39;pid&#39;)
+        # 查询当前审核人的数据
+        query = Moban.objects(pid=pid).first()
+        # 返回mb去接收前段数据，mbs为已有的数据
+        return Response(&#123;&#39;mb&#39;: eval(query.geshi), &#39;mbs&#39;: eval(query.geshi)&#125;)
+
+    def put(self, request):  # 添加
+        pid = request.data.get(&#39;pid&#39;)
+        geshi = request.data.get(&#39;geshi&#39;)
+        # 模板添加当前审核人和格式数据
+        Moban.objects.create(pid=pid, geshi=geshi)
+        return Response(&#39;ok&#39;)
+
+    def post(self, request):  # 修改
+        uid = request.data.get(&#39;uid&#39;)
+        # 获取所有审核人
+        Approved_list = request.data.get(&#39;Approved_list&#39;)
+        # 判断所有审核人类型如果为int则转换成列表字符串形式
+        # if type(eval(Approved_list)) == int:
+        #     Approved_list = str([Approved_list])
+        qiniuimg = request.data.get(&#39;qiniuimg&#39;)
+        info = request.data.get(&#39;info&#39;)
+
+        data = QinjiaMoban.objects.create(uid=uid, pid=eval(Approved_list)[0], Approved_list=str(Approved_list),
+                                          info=str(info), qiniuimg=qiniuimg)
+
+        App = eval(Approved_list)
+        text = &#39;您收到了一条审核工单&#39;
+        if type(App[0]) == list:
+            for i in App[0]:
+                Qingjia_gl.objects.create(gid=data.id, pid=i)
+                r.hset(&#39;user&#123;&#125;&#39;.format(i), &#39;message%s&#39; % data.id,
+                       str(&#123;&#39;id&#39;:data.id,&quot;text&quot;: text,  &quot;uid&quot;: i, &quot;read&quot;: 0, &quot;withdraw&quot;: 0,&#39;img&#39;:qiniuimg&#125;))
+        else:
+            Qingjia_gl.objects.create(gid=data.id, pid=App[0])
+            r.hset(&#39;user&#123;&#125;&#39;.format(App[0]), &#39;message%s&#39; % data.id,
+                   str(&#123;&#39;id&#39;:data.id,&quot;text&quot;: text, &quot;uid&quot;: App[0], &quot;read&quot;: 0, &quot;withdraw&quot;: 0,&#39;img&#39;:qiniuimg&#125;))
+        cli = MongoClient()
+        db = cli[&#39;text&#39;]
+        tbl = db[&#39;text&#39;]
+        # 过期删除数据库120s
+        tbl.create_index([(&#39;updated&#39;,int(data.id))], expireAfterSeconds=20)
+        tbl.insert_one(&#123;&#39;id&#39;: int(data.id), &#39;updated&#39;: datetime.datetime.utcnow()&#125;)  # 将数据存入mongo数据库
+
+        return Response(&#123;&#39;data&#39;: &#39;ok&#39;&#125;)</code></pre>
+<p>分装添加工单的并审和串审</p>
+<pre><code class="js">class Factory:
+    def __init__(self, gid, start):
+        self.qingjia = QinjiaMoban.objects.filter(id=gid)
+        self.qingjia_info = self.qingjia.first()
+        self.pid = eval(self.qingjia_info.pid)
+        # 关联外键gid
+        self.gid = gid
+        # 状态
+        self.start = start
+
+    # 串审
+    def Chuan(self, start):
+        # 判断状态不是拒绝时
+        if start != 2:
+            # 清空当前申请信息
+            Qingjia_gl.objects.filter(gid=self.gid).delete()
+            # 新建申请信息
+            Qingjia_gl.objects.create(gid=self.gid, pid=self.pid)
+            self.qingjia.update(pid=str(self.pid), start=3)
+        else:
+            # 清空当前申请信息
+            Qingjia_gl.objects.filter(gid=self.gid).delete()
+            Qingjia_gl.objects.create(gid=self.gid, pid=self.pid)
+            self.qingjia.update(pid=str(self.pid), start=2)
+
+    # 并审
+    def Bing(self, start):
+        if start != 2:
+            # 清空当前申请信息
+            Qingjia_gl.objects.filter(gid=self.gid).delete()
+            for i in self.pid:
+                # 新建申请信息
+                Qingjia_gl.objects.create(gid=self.gid, pid=i)
+            self.qingjia.update(pid=self.pid, start=3)
+        else:
+            # 清空当前申请信息
+            Qingjia_gl.objects.filter(gid=self.gid).delete()
+            for i in self.pid:
+                # 新建申请信息
+                Qingjia_gl.objects.create(gid=self.gid, pid=i)
+            self.qingjia.update(pid=self.pid, start=2)
+
+    def Zs(self):
+        # 执行审批逻辑
+        # 根据值获取下标
+        next_index = eval(self.qingjia_info.Approved_list).index(self.pid)
+        # 判断状态不是拒绝时
+        if self.start != 2:
+            # 审核人列表下标加1
+            next_index += 1
+            # 如果审核人为最后一个人的时候同意修改pid为None状态为同意
+            if next_index == len(eval(self.qingjia_info.Approved_list)):
+                self.qingjia.update(pid=None, start=1)
+                Qingjia_gl.objects.filter(gid=self.gid).delete()
+                # 结束判断
+                return
+            # 根据获取的下标获取值
+            next_pid = eval(self.qingjia_info.Approved_list)[next_index]
+            print(&#39;pid&#39;, next_pid)
+            # 修改当前审核人为获取的下标值
+            self.qingjia.update(pid=next_pid, start=3)
+            self.pid = next_pid
+            if type(next_pid) == list:
+                self.Bing(self.start)
+            else:
+                self.Chuan(self.start)
+        else:
+            if next_index == 0:
+                self.qingjia.update(pid=None, start=2)
+                Qingjia_gl.objects.filter(gid=self.qingjia_info.id).delete()
+                return
+            next_index -= 1
+            next_pid = eval(self.qingjia_info.Approved_list)[next_index]
+            self.qingjia.update(pid=next_pid, start=3)
+            self.pid = next_pid
+            if type(next_pid) == list:
+                self.Bing(self.start)
+            else:
+                self.Chuan(self.start)
+</code></pre>
+<p>显示请假展示等…(分装、不分装)</p>
+<pre><code class="js">class QingjiaZhanshi(APIView):
+    def get(self, request):
+        uid = request.GET.get(&#39;uid&#39;)
+        # 获取请假模板uid对应的数据
+        queryset = QinjiaMoban.objects.filter(uid=uid)
+        # 字典返回值
+        zs = &#123;0: &#39;未审批&#39;, 1: &#39;审批通过&#39;, 2: &#39;审批未通过&#39;, 3: &#39;审批中&#39;&#125;
+        data = []
+        for i in queryset:
+            # 查询User表返回username
+            user_info = User.objects.get(id=i.uid)
+            js = &#123;&#125;
+            # 申请人
+            js[&#39;username&#39;] = user_info.username
+            # 审批人列表
+            js[&#39;Approved_list&#39;] = []
+            # 状态是否审批
+            js[&#39;start&#39;] = zs[i.start]
+            # 凭证图片
+            js[&#39;qiniuimg&#39;] = i.qiniuimg
+            # 对应请假日期原因等
+            js[&#39;info&#39;] = eval(i.info)
+            # 循环查询数据中的审批人列表
+            for j in eval(i.Approved_list):
+                # 如果审批人的类型为list
+                if type(j) == list:
+                    # 审批人展示
+                    js[&#39;Approved_list&#39;].append(
+                        [User.objects.get(id=k).username for k in j]
+                    )
+                else:
+                    js[&#39;Approved_list&#39;].append(User.objects.get(id=j).username)
+            # 如果当然审批人存在
+            if i.pid:
+                e_pid = eval(i.pid)
+                # 如果当然审批人的类型为list
+                if type(e_pid) == list:
+                    # 当前审批人姓名添加列表
+                    js[&#39;pid_name&#39;] = [User.objects.get(id=k).username for k in e_pid]
+                # 如果类型不为list
+                else:
+                    # 当前单个审批人添加列表
+                    js[&#39;pid_name&#39;] = User.objects.get(id=e_pid).username
+                # 根据值查询下标赋值
+                js[&#39;f_index&#39;] = js[&#39;Approved_list&#39;].index(js[&#39;pid_name&#39;])
+            else:
+                js[&#39;f_index&#39;] = None
+            # 如果状态为审批未通过
+            if i.start == 2:
+                # 拒绝原因修改赋值
+                js[&#39;refuse&#39;] = i.refuse
+            else:
+                # 否则为None
+                js[&#39;refuse&#39;] = None
+            # 循环的数据添加到列表
+            data.append(js)
+
+        return Response(data)
+
+    def put(self, request):
+        # 获取请假模板的id查询
+        id = request.data.get(&#39;id&#39;)
+        # 审批为通过拒绝1为通过2为拒绝
+        start = request.data.get(&#39;start&#39;)
+        # 审批拒绝原因
+        refuse = request.data.get(&#39;refuse&#39;, None)
+        # 查询请假模板对应id的数据
+        qingjia = QinjiaMoban.objects.filter(id=id)
+        # qingjia_info = qingjia.first()
+        # 如果拒绝原因存在
+        if refuse:
+            # 则修改拒绝原因
+            qingjia.update(refuse=refuse)
+        ccs = Factory(gid=id, start=start)
+        ccs.Zs()
+        # 如果状态不为拒绝(2)
+        # if start != 2:
+        #     # 赋值pid转换类型
+        #     pid = eval(qingjia_info.pid)
+        #     # a_list定义的列表转换Approved_list为list的类型
+        #     a_list = eval(qingjia_info.Approved_list)
+        #     # 当前下标的下标+1为当前审核人的下标
+        #     next_index = a_list.index(pid) + 1
+        #     # 如果当前下标+1后的长度等于最后一个值的时候
+        #     if next_index == len(a_list):
+        #         # 修改状态为审核通过
+        #         qingjia.update(start=1)
+        #         # 当前审核人为空
+        #         qingjia.update(pid=None)
+        #     else:
+        #         # 如果不为最后一个值的时候状态为正在审核中
+        #         qingjia.update(start=3)
+        #         # 修改pid的值为当前审核人的下标
+        #         qingjia.update(pid=a_list[next_index])
+        # else:
+        #     pid = qingjia_info.pid
+        #     # 赋值a_list为转换为后的审核人列表(list)
+        #     a_list = eval(qingjia_info.Approved_list)
+        #     # pid_index当前审核人下标
+        #     pid_index = a_list.index(eval(pid))
+        #     # 如果下标为0拒绝
+        #     if pid_index == 0:
+        #         # 赋值pid为空
+        #         qingjia.update(pid=None)
+        #         # 状态为审核未通过
+        #         qingjia.update(start=2)
+        #     else:
+        #         # 如果下标不为0拒绝则回退下标减1
+        #         qingjia.update(pid=a_list[pid_index - 1])
+        #         # 修改状态为审核中
+        #         qingjia.update(start=3)
+
+        return Response(&#123;&#39;msg&#39;: &#39;审批完成&#39;&#125;)
+
+    def post(self, request):
+        pid = request.data.get(&#39;pid&#39;)
+
+        query = Qingjia_gl.objects.filter(pid=pid)
+        for i in query:
+            print(i.gid)
+        data = [QingJiaInfoSer(i.gid) for i in query]
+
+        Qingjia_gl.objects.filter(pid=pid, read=False).update(read=True)
+        # # 获取当前审核人pid
+        # pid = request.data.get(&#39;pid&#39;)
+        # # 获取全部数据
+        # query = QinjiaMoban.objects.all()
+        # # 定义空列表
+        # data = []
+        # zs = &#123;0: &#39;未审批&#39;, 1: &#39;审批通过&#39;, 2: &#39;审批未通过&#39;,3: &#39;审批中&#39;&#125;
+        # # 循环query数据
+        # for i in query:
+        #     # 如果当前审核人存在
+        #     if i.pid:
+        #         # 转换赋值
+        #         i_pid = eval(i.pid)
+        #     else:
+        #         #跳过当前循环继续下一次循环
+        #         continue
+        #     # 如果赋值的pid类型为list
+        #     if type(i_pid)==list:
+        #         #又如果pid在在列表中
+        #         if not pid in eval(i.pid):
+        #             # 跳过当前循环继续下一次循环
+        #             continue
+        #     # if not i.pid == i_pid:
+        #     #     continue
+        #     # 查询User表返回username
+        #     user_info = User.objects.get(id=i.uid)
+        #     js = &#123;&#125;
+        #     js[&#39;id&#39;] = i.id
+        #     js[&#39;name&#39;] = user_info.username
+        #     js[&#39;start&#39;] = zs[i.start]
+        #     js[&#39;info&#39;] = eval(i.info)
+        #
+        #     data.append(js)
+
+        return Response(data)</code></pre>
+<p>实现消息的互通展示等…</p>
+<pre><code class="js">class MessageView(APIView):
+    def get(self, request):
+        uid = request.GET.get(&#39;uid&#39;)
+        zt = &#123;0: &#39;未读&#39;, 1: &#39;已读&#39;&#125;
+        # 获取未读数据数量
+        query = Cate.objects.filter(pid=uid).order_by(&#39;create&#39;)
+        ids_0 = []
+        ids_1 = []
+        for i in query:
+            if i.uid not in ids_0 and i.uid not in ids_1:
+                if i.read == 0:
+                    ids_0.append(i.uid)
+                else:
+                    ids_1.append(i.uid)
+
+        user_info_list = []
+        for i in ids_0:
+            js = &#123;&#125;
+            user = User.objects.get(id=i)
+            js[&#39;username&#39;] = user.username
+            js[&#39;id&#39;] = user.id
+            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))
+            user_info_list.append(js)
+
+        for i in ids_1:
+            js = &#123;&#125;
+            user = User.objects.get(id=i)
+            js[&#39;username&#39;] = user.username
+            js[&#39;id&#39;] = user.id
+            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))
+            user_info_list.append(js)
+
+        count = Cate.objects.filter(pid=uid, read=False)
+
+        return Response(&#123;&#39;count&#39;: len(count), &#39;info&#39;: user_info_list&#125;)
+    def post(self,request):
+        pass
+    def put(self, request):
+        uid = request.data.get(&#39;uid&#39;)
+        pid = request.data.get(&#39;pid&#39;)
+        Cate.objects.filter(pid=uid, uid=pid).update(read=True)
+        return Response(&#39;ok&#39;)
+
+
+from qiniu import Auth
+from my.settings import AccessKey, SecretKey
+
+
+def qiniu_token():
+    # 定义密钥
+    qn = Auth(&#39;c6WPZAJYWKjtl-A0d9lnx0NeHpXtVUnPFKPM1er5&#39;, &#39;fVGVpKAjM2PHUaEoQ5EnDcO6krasp95rRGFJMrFZ&#39;)
+    # 指定上传空间, 返回token值
+    token = qn.upload_token(&#39;sbzjj&#39;)
+    return token
+
+
+from django.views import View
+from django.http import JsonResponse
+
+
+class UpTokenView(View):
+
+    def get(self, request):
+        return JsonResponse(&#123;&#39;token&#39;: qiniu_token()&#125;)
+class CateView(APIView):
+    def get(self, request):
+        uid = request.GET.get(&#39;uid&#39;)
+        c = r.hgetall(&#39;user&#123;&#125;&#39;.format(uid))
+        reads = &#123;0:&#39;未读&#39;,1:&#39;已读&#39;&#125;
+        list1 = []
+        length = 0
+        for key, values in c.items():
+            i = eval(values)
+            i[&#39;read&#39;] = reads[i[&#39;read&#39;]]
+            list1.append(i)
+            if i[&#39;read&#39;] == &#39;未读&#39;:
+                length += 1
+        return Response(&#123;&#39;message&#39;: list1, &#39;count&#39;: length&#125;)
+
+    def put(self, request):
+        uid = request.GET.get(&#39;uid&#39;)
+        c = r.hgetall(&#39;user&#123;&#125;&#39;.format(uid))
+        for key, values in c.items():
+            i = eval(values)
+            r.hset(&#39;user%s&#39; % uid, key, str(&#123;&#39;id&#39;:i[&#39;id&#39;],&quot;text&quot;: i[&#39;text&#39;], &quot;img&quot;: i[&#39;img&#39;], &quot;uid&quot;: i[&#39;uid&#39;], &quot;read&quot;: 1, &quot;withdraw&quot;: 0&#125;))
+        return Response(&#123;&#39;msg&#39;:&#39;ok&#39;&#125;)
+
+    def post(self, request):
+        cid = request.data.get(&#39;cid&#39;)
+        uid = request.data.get(&#39;uid&#39;)
+        c = r.hgetall(&#39;user&#123;&#125;&#39;.format(uid))
+        cli = MongoClient()
+        db = cli[&#39;text&#39;]
+        tbl = db[&#39;text&#39;]
+        for key, values in c.items():
+            i = eval(values)
+            zs=tbl.find(&#123;&#39;id&#39;:cid&#125;)
+            print(zs)
+            if tbl in zs:
+                if cid == i[&#39;id&#39;]:
+                    r.hset(&#39;user%s&#39; % uid, key, str(&#123;&#39;id&#39;:i[&#39;id&#39;],&quot;text&quot;: i[&#39;text&#39;], &quot;img&quot;: i[&#39;img&#39;], &quot;uid&quot;: i[&#39;uid&#39;], &quot;read&quot;: i[&#39;read&#39;], &quot;withdraw&quot;: 1&#125;))
+                    return Response(&#123;&#39;msg&#39;: &#39;已撤回&#39;&#125;)
+            else:
+                return Response(&#123;&#39;msg&#39;: &#39;超过2分钟无法撤回&#39;&#125;)
+
+class ChatView(APIView):
+
+    def post(self, request):
+        uid = request.data.get(&#39;uid&#39;)
+        pid = request.data.get(&#39;pid&#39;)
+        text = request.data.get(&#39;text&#39;)
+        img = request.data.get(&#39;img&#39;)
+        info = Cate.objects.create(uid=uid, pid=pid, text=text,img=img)
+        r.set(&#39;&#123;&#125;chexiao&#39;.format(info.id), &#39;hh&#39;, ex=120)
+        return Response(&#123;&#39;msg&#39;:&#39;ok&#39;&#125;)
+    def get(self, request):
+        uid = request.GET.get(&#39;uid&#39;)
+        # 获取未读数据数量
+        query = Cate.objects.filter(pid=uid).order_by(&#39;create&#39;)
+        ids_0 = []
+        ids_1 = []
+        for i in query:
+            if i.uid not in ids_0 and i.uid not in ids_1:
+                if i.read == 0:
+                    ids_0.append(i.uid)
+                else:
+                    ids_1.append(i.uid)
+
+        user_info_list = []
+        for i in ids_0:
+            js = &#123;&#125;
+            user = User.objects.get(id=i)
+            js[&#39;username&#39;] = user.username
+            js[&#39;id&#39;] = user.id
+            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))
+            user_info_list.append(js)
+
+        for i in ids_1:
+            js = &#123;&#125;
+            user = User.objects.get(id=i)
+            js[&#39;username&#39;] = user.username
+            js[&#39;id&#39;] = user.id
+            js[&#39;msg_count&#39;] = len(Cate.objects.filter(uid=i, pid=uid, read=False))
+            user_info_list.append(js)
+
+        count = Cate.objects.filter(pid=uid, read=False)
+
+        return Response(&#123;&#39;count&#39;: len(count), &#39;info&#39;: user_info_list&#125;)
+    def put(self,request):
+        uid = request.data.get(&#39;uid&#39;)
+        pid = request.data.get(&#39;pid&#39;)
+        Cate.objects.filter(pid=uid, uid=pid).update(read=1)
+        return Response(&#39;ok&#39;)
+
+    def delete(self, request):
+        id = request.GET.get(&#39;id&#39;)
+        r = redis.Redis(decode_responses=True)
+        yz = r.get(&#39;&#123;&#125;chexiao&#39;.format(id))
+
+        if yz:
+            Cate.objects.get(id=id).delete()
+            return Response(&#123;&#39;code&#39;: &#39;200&#39;&#125;)
+        return Response(&#123;&#39;code&#39;: &#39;400&#39;&#125;)</code></pre>
+<p>最后使用websocket实现代码的展示</p>
+<pre><code class="js"># 导入websocket装饰器
+@accept_websocket
+def msg_websocket(request, pid, uid):
+    if request.is_websocket():
+        while True:
+            # 刷新间隔为1秒
+            time.sleep(1)
+            msg_query = Cate.objects.filter(uid=pid, pid=uid)
+            to_msg_query = Cate.objects.filter(uid=uid, pid=pid)
+            data = []
+            for i in msg_query:
+                js = &#123;&#125;
+                js[&#39;id&#39;] = i.id
+                js[&#39;text&#39;] = i.text
+                js[&#39;uid&#39;] = i.uid
+                js[&#39;create&#39;] = i.create
+
+                js[&#39;img&#39;] = i.img
+                # print(i.img)
+
+                data.append(js)
+
+            for i in to_msg_query:
+                js = &#123;&#125;
+                js[&#39;id&#39;] = i.id
+                js[&#39;text&#39;] = i.text
+                js[&#39;uid&#39;] = i.uid
+                js[&#39;create&#39;] = i.create
+
+                js[&#39;img&#39;] = i.img
+                # print(i.img)
+                data.append(js)
+
+            data = sorted(data, key=lambda x: x[&#39;create&#39;])
+            for i in data:
+                del i[&#39;create&#39;]
+            request.websocket.send(json.dumps(&#123;&#39;data&#39;:data&#125;))</code></pre>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2021/05/03/drawboard/" title="通过堡垒机/跳板机实现文件在服务器之间的互传"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: 通过堡垒机/跳板机实现文件在服务器之间的互传</span></a><a class="button is-default" href="/blogs/2021/03/21/Celery/" title="Celery"><span class="has-text-weight-semibold">下一页: Celery</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>

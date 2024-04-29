@@ -1,0 +1,72 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>Lei Gao's blog</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/widget-post-list.css"><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><span>归档 · 全部</span></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><article class="post-container is-flex is-justify-content-center section container is-max-widescreen pt-4 px-2"><div class="columns is-variable is-1-tablet is-3-desktop-only is-2-widescreen is-full-width"><section class="column"><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/lake.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2021/02/06/day13/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/lake.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/docker%E6%93%8D%E4%BD%9C%20%E5%AE%B9%E5%99%A8%E3%80%81%E9%95%9C%E5%83%8F%20dockerfile"><i class="tag post-item-tag">docker操作 容器、镜像 dockerfile</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2021/02/06/day13/">docker操作 容器、镜像 dockerfile</a></h2><time class="has-text-grey" datetime="2021-02-06T06:59:21.000Z">2021-02-06</time><p class="is-flex-grow-2 mt-2">
+一、介绍虚拟化操作:把一个操作系统分成多个操作系统
+vmware:过于庞大，太过于慢，但是确实安装出来的虚拟机：隔离性很好docker：更快，更轻巧，但是隔离性不好
+二、docker安装-CentOS7安装必要的⼀些系统⼯具
+yum install -y yum-utils device-mapper-persistent-data lvm2
+添加软件源信息
+yum-config-manager --add-repo https://mirrors.aliyun.com/dockerce/linux/centos/docker-ce.repo
+更新并安装Docker-CE
+yum makecache fast yum -y install docker-ce
+开启Docker服务
+service doc..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2021/02/06/day13/">更多</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/river.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2021/02/05/day12/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/river.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/%E7%9B%B4%E6%92%AD"><i class="tag post-item-tag">直播</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2021/02/05/day12/">直播</a></h2><time class="has-text-grey" datetime="2021-02-05T06:59:21.000Z">2021-02-05</time><p class="is-flex-grow-2 mt-2">
+一、直播简介 直播分为：现场直播和观看直播，现场直播称为推流，观看直播称为拉流，一套流程走下去就可完成直播
+二、搭建HTTP-Flv协议在云主键进行部署环境创建保存的目录
+mkdir /usr/local/nginx-flv
+# 创建了一个安装目录
+mkdir /home/flv-tools
+# 存储所需软件
+下载所需文件
+wget https://nginx.org/download/nginx-1.18.0.tar.gz
+下载直播模块
+git clone https://github.com/winshining/nginx-http-flv-module
+解压nginx和直播模块
+tar -zxvf nginx-1.18.0.tar.gz nginx-1.18.0/
+unzip nginx-http..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2021/02/05/day12/">更多</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/river.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2021/02/04/day11/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/river.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/%E6%97%A0%E6%9E%81%E9%99%90%E8%87%AA%E5%85%B3%E8%81%94"><i class="tag post-item-tag">无极限自关联</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2021/02/04/day11/">无限极自关联</a></h2><time class="has-text-grey" datetime="2021-02-04T06:59:21.000Z">2021-02-04</time><p class="is-flex-grow-2 mt-2">
+一、什么是无限极自关联无限极分类其实就是一棵树，所有的节点作为一个存储元素。每个节点可以有任意个孩子节点，且只有一个父节点。
+二、后端部署models.pyclass Admin(models.Model):
+    name = models.CharField(max_leng=20) 
+    uid = models.ForeignKey(to=&amp;#39;self&amp;#39;, on_delete=models.SETNULL, default=None) # 自关联
+serializers.pyclass AdminSer(ModelSerializer):
+    class Meta:
+        model = Path
+        fields = &amp;#39;__all__&amp;#39..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2021/02/04/day11/">更多</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/river.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2021/02/03/day10/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/river.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/webshell"><i class="tag post-item-tag">webshell</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2021/02/03/day10/">webshell</a></h2><time class="has-text-grey" datetime="2021-02-03T06:59:21.000Z">2021-02-03</time><p class="is-flex-grow-2 mt-2">
+一、什么是webshellwebshell是指在web服务器上的一个脚本程序，通过这个脚本程序可以上传下载文件、查看数据库信息以及调用一些系统命令等。Webshell 获取网站服务器的权限(shell)。
+二、webshell原理本地可以通过远程连接的方式和网站的webshell建立连接，本地发送命令后，网站的shell脚本就会去执行此命令，从而达到管理网站的效果。
+三、webshell的分类有哪些？大马，小马，一句话木马等。
+小马：
+体积小、功能少、一般他只有文件上传功能
+大马:
+体积大、功能齐全、能够管理数据库、文件管理、对站点进行快速的信息收集，甚至能够提权。
+一句话木马:
+短小精悍、功能强大、隐蔽性好、使用客户端可以快速管理webshell
+四、webshell的隐蔽性有些恶意网页脚本可以嵌套在正..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2021/02/03/day10/">更多</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="/blogs/images/river.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/blogs/2021/02/01/day08/"><img class="post-cover-img js-img-fadeIn" src="/blogs/images/river.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/blogs/tags/Redis%E8%AE%A2%E9%98%85%E4%B8%8E%E5%8F%91%E5%B8%83"><i class="tag post-item-tag">Redis订阅与发布</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/blogs/2021/02/01/day08/">Redis订阅与发布</a></h2><time class="has-text-grey" datetime="2021-02-01T06:59:21.000Z">2021-02-01</time><p class="is-flex-grow-2 mt-2">
+一、什么是RedisRedis是一个开源的内存数据库，它以键值对的形式存储数据。由于数据存储在内存中，因此Redis的速度很快，但是每次重启Redis服务时，其中的数据也会丢失，因此，Redis也提供了持久化存储机制(AOF,RDB)，将数据以某种形式保存在文件中，每次重启时，可以自动从文件加载数据到内存当中。 
+二、什么是发布订阅Redis 发布订阅是一种消息通信模式：发送者发送消息，订阅者接收消息。
+三、发布者发布者是用来发布消息
+publish 将信息发送到指定的频道
+语法:
+publish channel message
+ 返回结果:
+接收到信息的订阅者数量
+import time
+import redis
+
+number = [&amp;#39;2000&amp;#39;, &amp;#39;2001&amp;#39;, &amp;#..</p><a class="button is-default mt-2 has-text-weight-semibold" href="/blogs/2021/02/01/day08/">更多</a></section></article><section class="paginator is-flex is-justify-content-flex-end is-flex-wrap-wrap"><a class="extend prev" rel="prev" href="/blogs/archives/page/2/"><i class="iconfont icon-prev has-text-grey"></i></a><a class="page-number" href="/blogs/archives/">1</a><a class="page-number" href="/blogs/archives/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/blogs/archives/page/4/">4</a><a class="page-number" href="/blogs/archives/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/blogs/archives/page/8/">8</a><a class="extend next" rel="next" href="/blogs/archives/page/4/"><i class="iconfont icon-next has-text-grey"></i></a></section></section><aside class="column is-hidden-mobile is-4-tablet is-3-widescreen"><div style="position: sticky; top: 50px;"><main class="aside-card-container archives-widget is-in-archive-page"><h3>归档</h3><section><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2023/04/">四月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2023/03/">三月 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2022/05/">五月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2022/04/">四月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/05/">五月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/03/">三月 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/02/">二月 2021</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2021/01/">一月 2021</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2019/05/">五月 2019</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2019/04/">四月 2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2019/03/">三月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2018/12/">十二月 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/blogs/archives/2018/02/">二月 2018</a><span class="archive-list-count">1</span></li></ul></section></main></div></aside></div></article><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
+
+window.addEventListener('resize', $claudia.throttle(function () {
+    var images = document.querySelectorAll('.js-img-fadeIn')
+
+    images.forEach($claudia.blurBackdropImg)
+}, 150))</script></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
+
+window.addEventListener('resize', $claudia.throttle(function () {
+    var images = document.querySelectorAll('.js-img-fadeIn')
+
+    images.forEach($claudia.blurBackdropImg)
+}, 150))</script></body></html>

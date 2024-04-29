@@ -1,0 +1,103 @@
+<!DOCTYPE html><html class="appearance-auto" lang="zh-CN"><head><meta charset="UTF-8"><title>异步及异步消费</title><meta name="description" content="Choose what you love"><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/blogs/images/favicon.png"><link rel="stylesheet" href="/blogs/style/common/bulma.css"><link rel="stylesheet" href="/blogs/style/base.css"><link rel="stylesheet" href="/blogs/style/common/helper.css"><script src="/blogs/js/common.js"></script><link rel="stylesheet" href="/blogs/style/post.css"><link rel="stylesheet" href="/blogs/style/themes/highlight-theme-light.css"><script src="/blogs/js/highlight.pack.js"></script><meta name="description" content="
+一、asyncio同步代码:
+import time
+
+
+def hello():
+    time.sleep(1)
+
+
+def run():
+    for i in range(5):
+        hello()
+        print(&amp;#39;Hello World:%s&amp;#39; % time.time())  
+
+
+if __name__ == &amp;#39;__main__&amp;#39;:
+    run()
+输出：
+Hello World:1527595175
+Hello World:1527595176
+Hello World:1527595177
+Hello World:1527595178
+Hello World:1527595179
+异步代码:
+import time
+impor.."><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/blogs/atom.xml" title="Lei Gao blog" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/blogs/">Lei Gao's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">异步及异步消费</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">点击返回顶部</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/blogs/">首页</a></h3><h3 class="is-inline-block"><a href="/blogs/about">关于</a></h3><h3 class="is-inline-block"><a href="/blogs/archives">归档</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81asyncio"><span class="toc-text">一、asyncio</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8E%A7%E5%88%B6%E4%BB%BB%E5%8A%A1"><span class="toc-text">二、控制任务</span></a></li></ol></div><div class="column is-9"><header class="my-4"><a href="/blogs/tags/%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9"><i class="tag post-item-tag">异步消费</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">异步及异步消费</h1><time class="has-text-grey" datetime="2018-02-11T16:00:00.000Z">2018-02-12</time><article class="mt-2 post-content"><p><img src="/blogs/images/lake.png" alt="cover"></p>
+<h3 id="一、asyncio"><a href="#一、asyncio" class="headerlink" title="一、asyncio"></a>一、asyncio</h3><p>同步代码:</p>
+<pre><code class="js">import time
+
+
+def hello():
+    time.sleep(1)
+
+
+def run():
+    for i in range(5):
+        hello()
+        print(&#39;Hello World:%s&#39; % time.time())  
+
+
+if __name__ == &#39;__main__&#39;:
+    run()</code></pre>
+<p>输出：</p>
+<pre><code class="js">Hello World:1527595175
+Hello World:1527595176
+Hello World:1527595177
+Hello World:1527595178
+Hello World:1527595179</code></pre>
+<p>异步代码:</p>
+<pre><code class="js">import time
+import asyncio
+
+
+# 定义异步函数
+async def hello():
+    asyncio.sleep(1)
+    print(&#39;Hello World:%s&#39; % time.time())
+
+
+def run():
+    for i in range(5):
+        loop.run_until_complete(hello())
+
+
+loop = asyncio.get_event_loop()
+if __name__ ==&#39;__main__&#39;:
+    run()</code></pre>
+<p>输出:</p>
+<pre><code class="js">Hello World:1527595104
+Hello World:1527595104
+Hello World:1527595104
+Hello World:1527595104
+Hello World:1527595104</code></pre>
+<p>async def 用来定义异步函数，其内部有异步操作。每个线程有一个事件循环，主线程调用asyncio.get_event_loop()时会创建事件循环，你需要把异步的任务丢给这个循环的run_until_complete()方法，事件循环会安排协同程序的执行。</p>
+<h3 id="二、控制任务"><a href="#二、控制任务" class="headerlink" title="二、控制任务"></a>二、控制任务</h3><p>通过asyncio.wait()可以控制多任务</p>
+<p>asyncio.wait()是一个协程，不会阻塞，立即返回，返回的是协程对象。传入的参数是future或协程构成的可迭代对象。最后将返回值传给run_until_complete()加入事件循环</p>
+<pre><code class="js">import asyncio
+
+async def coroutine_example(name):
+    print(&#39;正在执行:&#39;, name)
+    await asyncio.sleep(1)
+    print(&#39;执行完毕:&#39;, name)
+
+loop = asyncio.get_event_loop()
+
+tasks = [coroutine_example(&#39;nb&#39; + str(i)) for i in range(3)]
+wait_coro = asyncio.wait(tasks)
+loop.run_until_complete(wait_coro)
+loop.close()</code></pre>
+<p>输出结果:</p>
+<pre><code class="js">正在执行:nb_1
+正在执行:nb_0
+正在执行:nb_2
+执行完毕:nb_1
+执行完毕:nb_0
+执行完毕:nb_2</code></pre>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/blogs/2018/12/17/Sflask-one/" title="虚拟环境安装命令"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">上一页: 虚拟环境安装命令</span></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GLoveLei"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><a title="rss" target="_blank" rel="noopener nofollow" href="/blogs/atom.xml"><i class="iconfont icon-rss"></i></a><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> Lei Gao 2024</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/blogs/js/post.js"></script></body></html>
